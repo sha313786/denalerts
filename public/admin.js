@@ -44,8 +44,6 @@
         .then(r => r.json())
         .then(data => {
           if (data.success && data.user && data.user.email && data.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-            currentKey = 'srb2026';
-            sessionStorage.setItem('srb_admin_key', currentKey);
             gateOverlay.style.display = 'none';
             loadCreators();
             return;
@@ -99,10 +97,24 @@
     });
   }
 
+  function getAdminHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    const authToken = localStorage.getItem('denalerts_auth_token');
+    if (authToken) {
+      headers['Authorization'] = 'Bearer ' + authToken;
+    }
+    if (currentKey) {
+      headers['x-admin-key'] = currentKey;
+    }
+    return headers;
+  }
+
   // Load all creators from the server
   async function loadCreators(fromLogin = false) {
     try {
-      const res = await fetch(`/api/admin/creators?key=${encodeURIComponent(currentKey)}`);
+      const headers = getAdminHeaders();
+      const queryParam = currentKey ? `?key=${encodeURIComponent(currentKey)}` : '';
+      const res = await fetch(`/api/admin/creators${queryParam}`, { headers });
       if (res.status === 401) {
         if (fromLogin && gateError) {
           gateError.style.display = 'block';
@@ -268,10 +280,7 @@
     try {
       const res = await fetch(`/api/admin/set-plan`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': currentKey
-        },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ streamId, plan, days })
       });
       const data = await res.json();
@@ -291,10 +300,7 @@
     try {
       const res = await fetch(`/api/admin/delete-creator`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': currentKey
-        },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ streamId })
       });
       const data = await res.json();

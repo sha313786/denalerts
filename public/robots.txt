@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /dashboard
+Allow: /overlay
+Allow: /goal
+Allow: /tutorial
+Disallow: /admin
+Disallow: /api/admin/
+Disallow: /api/
+
+Sitemap: https://alerts.denbooks.in/sitemap.xml

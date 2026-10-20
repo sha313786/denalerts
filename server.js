@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const url = require('url');
+const crypto = require('crypto');
 const auth = require('./auth');
 const discordBot = require('./discord_bot');
 
@@ -27,7 +28,26 @@ if (!fs.existsSync(SESSIONS_DIR)) {
 // In-memory sessions map
 const sessions = new Map();
 const ipRateLimits = new Map();
+const loginRateLimits = new Map();
+const ttsRateLimits = new Map();
+const adminRateLimits = new Map();
 const recentPaymentHashes = new Map();
+
+function getClientIp(req) {
+  if (!req) return '127.0.0.1';
+  return req.headers['cf-connecting-ip'] || 
+         (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) || 
+         req.socket.remoteAddress || 
+         'unknown';
+}
+
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 // Profanity / Abuse filter patterns
 const BANNED_PATTERNS = [
@@ -347,6 +367,29 @@ function extractStreamId(req) {
   return resolveStreamId(raw);
 }
 
+function requireStreamerAuth(req, res, next) {
+  const streamId = extractStreamId(req);
+  if (!streamId) {
+    return res.status(401).json({ success: false, error: 'Creator streamId or authentication token required.' });
+  }
+
+  const token = extractAuthToken(req);
+  if (token) {
+    const user = auth.verifyToken(token);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Session expired. Please log in again.' });
+    }
+    const adminEmail = (process.env.ADMIN_EMAIL || 'srbstudiosofficial@gmail.com').toLowerCase();
+    const isAdmin = user.email && user.email.toLowerCase() === adminEmail;
+    if (!isAdmin && user.streamerKey && user.streamerKey !== streamId) {
+      return res.status(403).json({ success: false, error: 'Unauthorized to modify settings for another streamer.' });
+    }
+  }
+
+  req.streamId = streamId;
+  next();
+}
+
 function getLocalIpAddresses() {
   const interfaces = os.networkInterfaces();
   const ips = [];
@@ -437,9 +480,24 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 app.post('/api/auth/login', (req, res) => {
+  const ip = getClientIp(req);
+  const now = Date.now();
+  const rec = loginRateLimits.get(ip) || { count: 0, resetAt: now + 60000 };
+  if (now > rec.resetAt) {
+    rec.count = 0;
+    rec.resetAt = now + 60000;
+  }
+  rec.count++;
+  loginRateLimits.set(ip, rec);
+  if (rec.count > 10) {
+    return res.status(429).json({ success: false, error: 'Too many login attempts. Please wait 1 minute before retrying.' });
+  }
+
   try {
     const { email, password } = req.body || {};
     const result = auth.login({ email, password });
+    rec.count = 0;
+    loginRateLimits.set(ip, rec);
 
     // Ensure pairing code is linked
     pairingCodeToStreamId.set(String(result.user.pairingPin).toLowerCase(), result.user.streamerKey);
@@ -639,8 +697,8 @@ app.get('/api/history', (req, res) => {
   });
 });
 
-app.post('/api/clear', (req, res) => {
-  const streamId = extractStreamId(req);
+app.post('/api/clear', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
   const { session } = getSession(streamId);
   session.history = [];
   saveSession(streamId);
@@ -655,8 +713,8 @@ app.get('/api/settings', (req, res) => {
   res.json(session.settings);
 });
 
-app.post('/api/settings', (req, res) => {
-  const streamId = extractStreamId(req);
+app.post('/api/settings', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
   const { session } = getSession(streamId);
   const { voiceSpeed, voiceEnabled, voiceLanguage, voicePersona, voicePitch, soundVolume, minAlertAmount, minTtsAmount, censorProfanity, ownVoiceMode, ownVoiceUrl, ownVoiceOriginalName } = req.body;
 
@@ -733,8 +791,8 @@ app.get('/api/goal', (req, res) => {
   });
 });
 
-app.post('/api/goal/reset', (req, res) => {
-  const streamId = extractStreamId(req);
+app.post('/api/goal/reset', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
   const { session } = getSession(streamId);
   session.settings.goalCurrent = 0;
   saveSession(streamId);
@@ -752,8 +810,8 @@ app.post('/api/goal/reset', (req, res) => {
   res.json({ success: true, goalCurrent: 0, settings: session.settings });
 });
 
-app.post('/api/goal/bump', (req, res) => {
-  const streamId = extractStreamId(req);
+app.post('/api/goal/bump', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
   const { session } = getSession(streamId);
   const amount = parseFloat(req.body.amount || 100) || 100;
   session.settings.goalCurrent = (parseFloat(session.settings.goalCurrent) || 0) + amount;
@@ -1244,9 +1302,25 @@ function fetchSingleTTSChunk(chunk, lang, retries = 3) {
 }
 
 app.get('/api/tts', async (req, res) => {
-  const text = (req.query.text || '').trim();
+  const ip = getClientIp(req);
+  const now = Date.now();
+  const rec = ttsRateLimits.get(ip) || { count: 0, resetAt: now + 60000 };
+  if (now > rec.resetAt) {
+    rec.count = 0;
+    rec.resetAt = now + 60000;
+  }
+  rec.count++;
+  ttsRateLimits.set(ip, rec);
+  if (rec.count > 45) {
+    return res.status(429).send('Too many TTS requests. Please slow down.');
+  }
+
+  let text = (req.query.text || '').trim();
   const lang = (req.query.lang || 'en-IN').trim();
   if (!text) return res.status(400).send('No text provided');
+  if (text.length > 250) {
+    text = text.substring(0, 250);
+  }
 
   const cacheKey = `${lang}:${text}`;
   if (ttsCache.has(cacheKey)) {
@@ -1281,22 +1355,41 @@ const ADMIN_KEY = process.env.ADMIN_SECRET_KEY || process.env.ADMIN_KEY || 'srb2
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'srbstudiosofficial@gmail.com';
 
 function requireAdmin(req, res, next) {
+  const ip = getClientIp(req);
+  const now = Date.now();
+  const blockRecord = adminRateLimits.get(ip) || { failed: 0, lockedUntil: 0 };
+  if (now < blockRecord.lockedUntil) {
+    const waitSec = Math.ceil((blockRecord.lockedUntil - now) / 1000);
+    return res.status(429).json({ success: false, error: `Too many failed admin attempts. IP temporarily locked for ${waitSec}s.` });
+  }
+
   // Check if caller possesses valid session token for srbstudiosofficial@gmail.com
   const token = extractAuthToken(req);
   if (token) {
     const user = auth.verifyToken(token);
     if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      blockRecord.failed = 0;
+      adminRateLimits.set(ip, blockRecord);
       return next();
     }
   }
 
-  // Fallback to x-admin-key / query key
+  // Fallback to x-admin-key / query key with timing-safe comparison
   const key = req.headers['x-admin-key'] || req.query.key || (req.body && req.body.key);
-  if (key && String(key).trim() === ADMIN_KEY) {
+  if (key && safeCompare(String(key).trim(), ADMIN_KEY)) {
+    blockRecord.failed = 0;
+    adminRateLimits.set(ip, blockRecord);
     return next();
   }
 
-  return res.status(401).json({ success: false, error: 'Unauthorized. Admin access restricted to srbstudiosofficial@gmail.com.' });
+  blockRecord.failed = (blockRecord.failed || 0) + 1;
+  if (blockRecord.failed >= 5) {
+    blockRecord.lockedUntil = now + (15 * 60 * 1000); // Lock for 15 minutes after 5 failures
+    console.warn(`[Security Alert] IP ${ip} locked out of admin portal due to repeated failed attempts.`);
+  }
+  adminRateLimits.set(ip, blockRecord);
+
+  return res.status(401).json({ success: false, error: 'Unauthorized. Admin access restricted.' });
 }
 
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
@@ -1438,6 +1531,11 @@ app.post('/api/admin/delete-creator', requireAdmin, (req, res) => {
   res.json({ success: true, deleted: safeId });
 });
 
+app.get('/robots.txt', (req, res) => res.sendFile(path.join(__dirname, 'public', 'robots.txt')));
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/sign-in', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));

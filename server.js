@@ -16,7 +16,7 @@ const DATA_DIR = path.join(__dirname, 'data');
 const SESSIONS_DIR = path.join(DATA_DIR, 'sessions');
 
 const app = express();
-app.get('/health', (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() }));
+app.get(['/health', '/healthz'], (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() }));
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 

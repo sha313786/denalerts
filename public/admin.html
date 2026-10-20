@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SRB STUDIOS - Master Admin & Creator Plan Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #060911;
+      --bg-card: rgba(14, 20, 36, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f0ff;
+      --accent-purple: #a855f7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.05) 0%, transparent 40%),
+        linear-gradient(to bottom, #060911, #0a0e1a);
+      padding: 24px 32px;
+    }
+
+    .admin-container {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    /* Top Bar */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-spark {
+      font-size: 24px;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 12px #00f0ff;
+    }
+
+    .brand-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+
+    .admin-badge {
+      background: linear-gradient(135deg, #00f0ff, #a855f7);
+      color: #000;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 9px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+      color: #000;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-xs {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+
+    .btn-pro {
+      background: linear-gradient(135deg, #10b981, #00f0ff);
+      color: #000;
+    }
+
+    .btn-trial {
+      background: linear-gradient(135deg, #f59e0b, #ec4899);
+      color: #000;
+    }
+
+    .btn-free {
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #f43f5e;
+    }
+
+    /* Stat Cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .stat-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    /* Filter & Search Bar */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+
+    .search-input {
+      background: #080c16;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      width: 320px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(0, 240, 255, 0.12);
+      color: var(--accent-cyan);
+    }
+
+    /* Table */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 14px 18px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .creator-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .plan-badge.pro {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .plan-badge.trial {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+
+    .plan-badge.free {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+    }
+
+    .watermark-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .watermark-pill.active {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+    .watermark-pill.none {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* Auth Gate Modal */
+    .gate-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 6, 12, 0.95);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .gate-box {
+      width: 100%;
+      max-width: 420px;
+      background: #0b101d;
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.2);
+      text-align: center;
+    }
+
+    .gate-spark {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .gate-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .gate-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+
+    .gate-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #060911;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    .gate-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--accent-cyan);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10000;
+    }
+    /* Mobile & Tablet Responsive Architecture for Admin */
+    @media (max-width: 900px) {
+      .admin-container {
+        padding: 14px 10px;
+      }
+      .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .header-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+      .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .filter-tabs {
+        overflow-x: auto;
+        width: 100%;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .filter-tabs .tab-btn {
+        flex-shrink: 0;
+      }
+      .table-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+      }
+      table {
+        min-width: 720px;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+      .brand-title {
+        font-size: 14px;
+      }
+      .gate-box {
+        margin: 16px;
+        padding: 24px 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin Gate Modal -->
+  <div id="gate-overlay" class="gate-overlay">
+    <div class="gate-box">
+      <div class="gate-spark">⚡</div>
+      <div class="gate-title">SRB STUDIOS ADMIN PORTAL</div>
+      <div class="gate-sub">Enter Admin Key to manage all creator plans and subscriptions.</div>
+      <input type="password" id="admin-key-input" class="gate-input" placeholder="Admin Secret Key" value="srb2026">
+      <button type="button" id="btn-unlock" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+        <span>🔐 Unlock Master Panel</span>
+      </button>
+      <div id="gate-error" style="color: #f43f5e; font-size: 12px; margin-top: 10px; display: none;">Invalid Admin Key</div>
+    </div>
+  </div>
+
+  <div class="admin-container">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="brand-wrap">
+        <span class="brand-spark">⚡</span>
+        <div>
+          <div class="brand-title">SRB STUDIOS &bull; MASTER CREATOR MANAGER</div>
+          <div style="font-size: 12px; color: var(--text-muted);">Manage subscriptions, automatic expirations, and watermarks across India</div>
+        </div>
+        <span class="admin-badge">OWNER PORTAL</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-refresh" class="btn btn-secondary">
+          <span>🔄 Refresh Live List</span>
+        </button>
+        <a href="/dashboard" class="btn btn-primary" target="_blank">
+          <span>Go to Stream Cockpit →</span>
+        </a>
+        <button id="btn-lock" class="btn btn-secondary btn-xs" title="Lock Admin Portal">
+          <span>🔒 Lock</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Statistics Cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Streamers Registered</div>
+        <div class="stat-val" id="stat-total-creators">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Paid Pro Streamers (👑 Unbranded)</div>
+        <div class="stat-val" id="stat-pro-creators" style="color: #34d399;">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pro Trial Streamers (⏳ 14-Day)</div>
+        <div class="stat-val" id="stat-trial-creators" style="color: #fbbf24;">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Donations Processed</div>
+        <div class="stat-val" id="stat-total-revenue" style="color: var(--accent-cyan);">₹0</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input type="text" id="search-box" class="search-input" placeholder="🔍 Search Streamer ID...">
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-filter="all">All Streamers</button>
+        <button class="tab-btn" data-filter="pro">👑 Paid Pro</button>
+        <button class="tab-btn" data-filter="pro_trial">⏳ Pro Trial</button>
+        <button class="tab-btn" data-filter="free">Free Tier</button>
+      </div>
+    </div>
+
+    <!-- Creators Data Table -->
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Streamer Code / ID</th>
+            <th>Subscription Tier</th>
+            <th>Days Left / Expiry</th>
+            <th>Watermark</th>
+            <th>Voice Setup</th>
+            <th>Total Received</th>
+            <th>Plan Controls</th>
+          </tr>
+        </thead>
+        <tbody id="creators-tbody">
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">Loading creators data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Action completed!</div>
+
+  <script src="/admin.js?v=1"></script>
+</body>
+</html>

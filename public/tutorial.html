@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DenAlerts - Official Video Tutorial & Walkthrough</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #060911;
+      --bg-card: rgba(14, 20, 36, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f0ff;
+      --accent-green: #10b981;
+      --accent-purple: #a855f7;
+      --accent-gold: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.06) 0%, transparent 45%),
+        linear-gradient(to bottom, #060911, #0a0e1a);
+      padding: 24px 32px;
+    }
+
+    .tutorial-container {
+      max-width: 1360px;
+      margin: 0 auto;
+    }
+
+    /* Top Bar */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-spark {
+      font-size: 24px;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 12px #00f0ff;
+    }
+
+    .brand-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+
+    .tutorial-badge {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #000;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 9px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+      color: #000;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Video Player Screen */
+    .video-studio-wrapper {
+      position: relative;
+      background: #03050a;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 240, 255, 0.1);
+      margin-bottom: 24px;
+    }
+
+    .video-canvas {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #020408;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Scene Container */
+    .scene-viewport {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .scene-viewport.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Subtitles / CC */
+    .cc-container {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(6, 9, 17, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 8px 20px;
+      max-width: 80%;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.4;
+      backdrop-filter: blur(8px);
+      z-index: 12;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Custom Video Controls Bar */
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(3, 5, 10, 0.95) 40%, #03050a 100%);
+      padding: 14px 20px 14px;
+      z-index: 20;
+    }
+
+    .progress-bar-wrap {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: height 0.15s ease;
+    }
+    .progress-bar-wrap:hover { height: 9px; }
+
+    .progress-filled {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), #3b82f6);
+      border-radius: 4px;
+      width: 0%;
+      pointer-events: none;
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .controls-left, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s, transform 0.15s;
+    }
+    .ctrl-btn:hover {
+      color: var(--accent-cyan);
+      transform: scale(1.15);
+    }
+
+    .time-display {
+      font-family: 'Rajdhani', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 1px;
+    }
+
+    .lang-select {
+      background: #090e1a;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 11.5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Scene Elements Styling */
+    .scene-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--accent-cyan);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .scene-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 40px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 14px;
+      text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+    }
+
+    .scene-desc {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 680px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* Simulated Visuals */
+    .visual-card {
+      background: rgba(14, 20, 36, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 20px 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      max-width: 640px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .phone-mock {
+      background: #000;
+      border: 3px solid #334155;
+      border-radius: 24px;
+      padding: 16px;
+      max-width: 340px;
+      width: 100%;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+    }
+
+    .notif-box {
+      background: rgba(30, 41, 59, 0.95);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: notifPop 0.6s ease;
+    }
+
+    @keyframes notifPop {
+      0% { transform: translateY(-20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Chapter Selector Below Video */
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .chapter-card:hover, .chapter-card.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .chap-num {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .chap-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .chap-time {
+      font-family: 'Rajdhani', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Video Download & Creator Sharing Hub */
+    .download-hub-card {
+      background: linear-gradient(135deg, rgba(14, 20, 36, 0.95), rgba(8, 12, 22, 0.95));
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 16px;
+      padding: 24px 30px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 240, 255, 0.04);
+      margin-top: 10px;
+      margin-bottom: 30px;
+    }
+
+    .hub-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .hub-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .hub-subtitle {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .hub-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #10b981;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .download-options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .dl-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .dl-box:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.04);
+      transform: translateY(-2px);
+    }
+
+    .dl-box-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .dl-icon { font-size: 22px; }
+
+    .dl-platform {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .dl-spec {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .dl-btn {
+      width: 100%;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .dl-btn-yt {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+    }
+    .dl-btn-yt:hover {
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+    }
+
+    .dl-btn-insta {
+      background: linear-gradient(135deg, #e1306c, #f77737);
+      color: #fff;
+    }
+    .dl-btn-insta:hover {
+      box-shadow: 0 0 16px rgba(225, 48, 108, 0.4);
+    }
+
+    .dl-btn-meta {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--accent-cyan);
+    }
+    .dl-btn-meta:hover {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    @media (max-width: 900px) {
+      .download-options-grid { grid-template-columns: 1fr; }
+      .chapters-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .tutorial-container { padding: 14px 10px; }
+      .top-header { flex-direction: column; align-items: stretch; gap: 10px; }
+      .header-actions { flex-wrap: wrap; width: 100%; }
+      .header-actions .btn { flex: 1 1 auto; justify-content: center; }
+      .chapters-grid { grid-template-columns: 1fr; }
+      .hero-banner { padding: 24px 16px; }
+      .hero-title { font-size: 22px; }
+      .step-card { padding: 18px 14px; }
+      .code-snippet-box { overflow-x: auto; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tutorial-container">
+    <!-- Header -->
+    <header class="top-header">
+      <div class="brand-wrap">
+        <span class="brand-spark">⚡</span>
+        <div>
+          <div class="brand-title">DENBOOKS &bull; DENALERTS</div>
+          <div style="font-size: 12px; color: var(--text-muted);">Master Video Walkthrough &amp; System Architecture Guide</div>
+        </div>
+        <span class="tutorial-badge">TUTORIAL VIDEO</span>
+      </div>
+      <div class="header-links">
+        <a href="/downloads/SRB_STUDIOS_StreamAlerts_Tutorial.mp4" download="SRB_STUDIOS_StreamAlerts_Tutorial_1080p.mp4" class="btn" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#fff; box-shadow:0 0 12px rgba(239,68,68,0.3);">
+          <span>📥 YouTube MP4</span>
+        </a>
+        <a href="/downloads/SRB_STUDIOS_StreamAlerts_Reel.mp4" download="SRB_STUDIOS_StreamAlerts_Reel_9x16.mp4" class="btn" style="background:linear-gradient(135deg, #e1306c, #f77737); color:#fff; box-shadow:0 0 12px rgba(225,48,108,0.3);">
+          <span>📱 Reels MP4</span>
+        </a>
+        <a href="/" class="btn btn-primary" style="font-size:14px; padding:9px 18px; font-weight:800;">
+          <span>🏠 Home Page</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- 16:9 Video Studio Canvas -->
+    <div class="video-studio-wrapper">
+      <div class="video-canvas" id="video-canvas">
+
+        <!-- Scene 1: Introduction -->
+        <div class="scene-viewport active" id="scene-0">
+          <span class="scene-pill">CHAPTER 1 &bull; INTRODUCTION</span>
+          <h1 class="scene-title">Zero-Commission UPI Live Stream Alerts</h1>
+          <p class="scene-desc">
+            Direct-to-bank instant Indian UPI donation alerts with regional voice synthesis and dynamic overlays—built specifically for Indian live streamers.
+          </p>
+          <div class="visual-card" style="display:flex; justify-content:space-around; align-items:center;">
+            <div style="text-align:center;">
+              <div style="font-size:32px; font-family:'Rajdhani',sans-serif; font-weight:800; color:#34d399;">0% FEES</div>
+              <div style="font-size:12px; color:var(--text-muted);">Direct to your bank account</div>
+            </div>
+            <div style="height:40px; width:1px; background:var(--border-color);"></div>
+            <div style="text-align:center;">
+              <div style="font-size:32px; font-family:'Rajdhani',sans-serif; font-weight:800; color:var(--accent-cyan);">10+ LANGUAGES</div>
+              <div style="font-size:12px; color:var(--text-muted);">Hindi, Tamil, Telugu, Kannada, etc.</div>
+            </div>
+            <div style="height:40px; width:1px; background:var(--border-color);"></div>
+            <div style="text-align:center;">
+              <div style="font-size:32px; font-family:'Rajdhani',sans-serif; font-weight:800; color:#a855f7;">OWN VOICE</div>
+              <div style="font-size:12px; color:var(--text-muted);">Personal voice shoutouts</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 2: Overlay Setup -->
+        <div class="scene-viewport" id="scene-1">
+          <span class="scene-pill">CHAPTER 2 &bull; 1-CLICK OVERLAY SETUP</span>
+          <h2 class="scene-title">Paste In Your Broadcast Studio</h2>
+          <p class="scene-desc">
+            Copy your unique stream URL into any streaming software as a standard 1920x1080 Browser Source. The canvas remains 100% transparent and clean until a donation triggers!
+          </p>
+          <div class="visual-card">
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Your Dedicated Browser Source URL:</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--accent-cyan); background:#060a14; padding:10px 14px; border-radius:8px; border:1px solid rgba(0,240,255,0.3);">
+              https://alerts.srbstudios.com/overlay?code=streamer_key
+            </div>
+            <div style="margin-top:12px; font-size:12px; color:#34d399;">
+              ✅ 100% Transparent Canvas &bull; Audio Pre-Loaded &bull; WebSocket Connected
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 3: UPI Live Payment Catching -->
+        <div class="scene-viewport" id="scene-2">
+          <span class="scene-pill">CHAPTER 3 &bull; LIVE UPI NOTIFICATION</span>
+          <h2 class="scene-title">Real-Time Phone Notification Catch</h2>
+          <p class="scene-desc">
+            Your Android device catches PhonePe, GPay, or Paytm payments via local notification listener. No bank passwords or UPI PINs are ever required!
+          </p>
+          <div class="phone-mock">
+            <div style="font-size:10px; color:#64748b; margin-bottom:8px; text-align:center;">📱 ANDROID LISTENER (LOCAL)</div>
+            <div class="notif-box">
+              <span style="font-size:24px;">🟣</span>
+              <div>
+                <div style="font-size:12px; font-weight:800; color:#fff;">PhonePe &bull; Received ₹500</div>
+                <div style="font-size:11px; color:#cbd5e1;">Alex Martin sent ₹500: "Awesome gameplay! Great stream!"</div>
+              </div>
+            </div>
+            <div style="margin-top:10px; font-size:10.5px; color:#34d399; text-align:center;">
+              ⚡ Forwarding alert to server in &lt;50ms
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 4: Popup Alert Animation & TTS -->
+        <div class="scene-viewport" id="scene-3">
+          <span class="scene-pill">CHAPTER 4 &bull; LIVE ALERT &amp; VOICE</span>
+          <h2 class="scene-title">Animated Pop-Up &amp; Regional Voice</h2>
+          <p class="scene-desc">
+            A dynamic alert appears on stream with the donor's name, donation amount, and message, followed by instant voice text-to-speech announcement.
+          </p>
+          <div class="visual-card" style="border:1px solid rgba(0,240,255,0.4); box-shadow:0 0 30px rgba(0,240,255,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span style="font-size:13px; font-weight:800; color:#fff;">🟣 PhonePe DONATION</span>
+              <span style="color:#10b981; font-size:12px; font-weight:800;">✓ VERIFIED UPI</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+              <span style="font-size:36px; font-family:'Rajdhani',sans-serif; font-weight:900; color:#34d399;">₹500</span>
+              <span style="font-size:14px; font-weight:700; color:#e2e8f0;">FROM: Alex Martin</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; font-style:italic; font-size:13px; margin-bottom:12px;">
+              "Awesome stream! Keep up the great gameplay!"
+            </div>
+            <div style="text-align:center; padding:6px; font-size:12px; font-weight:700; color:var(--text-muted);">
+              Instant Live Audio &bull; Direct Bank Settlement
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 5: Streamer's Own Voice Studio -->
+        <div class="scene-viewport" id="scene-4">
+          <span class="scene-pill">CHAPTER 5 &bull; STREAMER'S OWN VOICE</span>
+          <h2 class="scene-title">Thank Donors In Your Own Real Voice!</h2>
+          <p class="scene-desc">
+            Record directly using your browser microphone or upload an audio file. The stream overlay will speak in your real voice whenever someone donates!
+          </p>
+          <div class="visual-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span style="font-size:13px; font-weight:800; color:#fff;">🎙️ Own Voice Studio</span>
+              <span style="background:linear-gradient(135deg,#00f0ff,#6366f1); color:#000; font-size:10px; font-weight:900; padding:2px 8px; border-radius:10px;">PRO EXCLUSIVE</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+              <span style="color:#f43f5e; font-size:18px;">🔴</span>
+              <span style="font-family:'Rajdhani',monospace; font-size:18px; font-weight:800; color:#fff;">00:04 / 00:30 &bull; RECORDING LIVE</span>
+              <div style="flex:1; height:12px; background:rgba(244,63,94,0.2); border-radius:6px; overflow:hidden;">
+                <div style="height:100%; width:60%; background:#f43f5e;"></div>
+              </div>
+            </div>
+            <div style="font-size:12px; color:#94a3b8; font-style:italic;">
+              Streamer recorded line: "Thank you so much for supporting the stream!"
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 6: Get Started Today -->
+        <div class="scene-viewport" id="scene-5">
+          <span class="scene-pill">CHAPTER 6 &bull; READY TO GO LIVE 🚀</span>
+          <h2 class="scene-title">Start Streaming in 2 Minutes</h2>
+          <p class="scene-desc">
+            Sign up for free, download the Android APK, paste your browser overlay link, and start receiving direct-to-bank UPI donation alerts instantly.
+          </p>
+          <div class="visual-card" style="display:flex; justify-content:space-around; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:800; color:var(--accent-cyan);">① Sign Up Free</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Create creator account</div>
+            </div>
+            <div style="font-size:18px; color:var(--text-muted);">→</div>
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:800; color:#a855f7;">② Install App</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Android Notification APK</div>
+            </div>
+            <div style="font-size:18px; color:var(--text-muted);">→</div>
+            <div style="text-align:center;">
+              <div style="font-size:20px; font-weight:800; color:#34d399;">③ Go Live!</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Direct UPI on stream</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Synchronized Subtitles -->
+        <div class="cc-container" id="cc-text">
+          Welcome to SRB STUDIOS StreamAlerts! The zero-commission UPI live donation platform built for Indian streamers.
+        </div>
+
+        <!-- Video Player Controls -->
+        <div class="video-controls">
+          <div class="progress-bar-wrap" id="progress-bar-wrap">
+            <div class="progress-filled" id="progress-filled"></div>
+          </div>
+          <div class="controls-row">
+            <div class="controls-left">
+              <button class="ctrl-btn" id="btn-play-pause" title="Play / Pause">▶️</button>
+              <button class="ctrl-btn" id="btn-replay" title="Replay from Beginning" style="font-size:15px;">🔄</button>
+              <div class="time-display" id="time-display">00:00 / 01:30</div>
+            </div>
+            <div class="controls-right">
+              <select id="select-tutorial-lang" class="lang-select">
+                <option value="en-IN">🗣️ Voice: English</option>
+                <option value="hi">🗣️ Voice: Hindi</option>
+                <option value="ta">🗣️ Voice: Tamil</option>
+                <option value="ml">🗣️ Voice: Malayalam</option>
+              </select>
+              <button class="ctrl-btn" id="btn-sound-toggle" title="Mute / Unmute" style="font-size:16px;">🔊</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter Quick Selectors -->
+    <div class="chapters-grid">
+      <div class="chapter-card active" data-scene="0">
+        <div class="chap-num">Chapter 1</div>
+        <div class="chap-title">Intro &amp; Zero Commission</div>
+        <div class="chap-time">00:00</div>
+      </div>
+      <div class="chapter-card" data-scene="1">
+        <div class="chap-num">Chapter 2</div>
+        <div class="chap-title">1-Click Overlay Setup</div>
+        <div class="chap-time">00:15</div>
+      </div>
+      <div class="chapter-card" data-scene="2">
+        <div class="chap-num">Chapter 3</div>
+        <div class="chap-title">UPI Notification Catch</div>
+        <div class="chap-time">00:30</div>
+      </div>
+      <div class="chapter-card" data-scene="3">
+        <div class="chap-num">Chapter 4</div>
+        <div class="chap-title">Live Alert &amp; Regional TTS</div>
+        <div class="chap-time">00:45</div>
+      </div>
+      <div class="chapter-card" data-scene="4">
+        <div class="chap-num">Chapter 5</div>
+        <div class="chap-title">Streamer's Own Voice</div>
+        <div class="chap-time">01:00</div>
+      </div>
+      <div class="chapter-card" data-scene="5">
+        <div class="chap-num">Chapter 6</div>
+        <div class="chap-title">Go Live Today 🚀</div>
+        <div class="chap-time">01:15</div>
+      </div>
+    </div>
+
+    <!-- Video Download & Creator Sharing Hub -->
+    <div class="download-hub-card">
+      <div class="hub-top-row">
+        <div>
+          <div class="hub-title">
+            <span>📥</span>
+            <span>Download Official Video Files (For YouTube, Instagram &amp; WhatsApp)</span>
+          </div>
+          <div class="hub-subtitle">
+            Pre-rendered 1080p master video files with full voiceover narration and cyber visuals
+          </div>
+        </div>
+        <span class="hub-badge">✓ 1080P MASTER MP4</span>
+      </div>
+
+      <div class="download-options-grid">
+        <!-- Option 1: YouTube 16:9 Landscape -->
+        <div class="dl-box">
+          <div>
+            <div class="dl-box-header">
+              <span class="dl-icon">📺</span>
+              <span class="dl-platform">YouTube 16:9 Landscape</span>
+            </div>
+            <div class="dl-spec">
+              1920x1080 Full HD &bull; H.264 Video + AAC Audio &bull; Complete 6 Chapters Walkthrough (~9.3 MB)
+            </div>
+          </div>
+          <a href="/downloads/SRB_STUDIOS_StreamAlerts_Tutorial.mp4" download="SRB_STUDIOS_StreamAlerts_Tutorial_1080p.mp4" class="dl-btn dl-btn-yt">
+            <span>📥 Download YouTube MP4</span>
+          </a>
+        </div>
+
+        <!-- Option 2: Instagram Reels / Shorts 9:16 Vertical -->
+        <div class="dl-box">
+          <div>
+            <div class="dl-box-header">
+              <span class="dl-icon">📱</span>
+              <span class="dl-platform">Instagram Reels &amp; Shorts</span>
+            </div>
+            <div class="dl-spec">
+              1080x1920 9:16 Vertical &bull; Optimized for Reels, Shorts &amp; WhatsApp Stories (~10.3 MB)
+            </div>
+          </div>
+          <a href="/downloads/SRB_STUDIOS_StreamAlerts_Reel.mp4" download="SRB_STUDIOS_StreamAlerts_Reel_9x16.mp4" class="dl-btn dl-btn-insta">
+            <span>📱 Download Reels MP4</span>
+          </a>
+        </div>
+
+        <!-- Option 3: Copy YouTube Title, Description & Tags -->
+        <div class="dl-box">
+          <div>
+            <div class="dl-box-header">
+              <span class="dl-icon">📋</span>
+              <span class="dl-platform">YouTube &amp; Insta Copy Kit</span>
+            </div>
+            <div class="dl-spec">
+              1-Click copy pre-written title, description, timestamps, and hashtags to paste directly on YouTube &amp; Instagram
+            </div>
+          </div>
+          <button id="btn-copy-yt-kit" class="dl-btn dl-btn-meta">
+            <span>📋 Copy Title &amp; Description</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="tts-audio" preload="auto"></audio>
+
+  <script>
+    // Chapter definitions and dynamic speech synthesis
+    const SCENES = [
+      {
+        id: 0,
+        title: "Introduction",
+        duration: 15,
+        subtitles: {
+          'en-IN': "Welcome to SRB STUDIOS StreamAlerts! The zero-commission UPI live donation platform built for Indian streamers.",
+          'hi': "SRB STUDIOS StreamAlerts में आपका स्वागत है! भारतीय लाइव स्ट्रीमर्स के लिए 0% कमीशन UPI डोनेशन अलर्ट प्लेटफॉर्म।",
+          'ta': "SRB STUDIOS StreamAlerts-க்கு வரவேற்கிறோம்! இந்திய ஸ்ட்ரீமர்களுக்கான 0% கமிஷன் UPI லைவ் டொனேஷன் தளம்.",
+          'ml': "SRB STUDIOS StreamAlerts-ലേക്ക് സ്വാഗതം! ഇന്ത്യൻ ലൈവ് സ്ട്രീമർമാർക്കായി നിർമ്മിച്ച 0% കമ്മീഷൻ യു.പി.ഐ ഡൊണേഷൻ അലർട്ട് പ്ലാറ്റ്‌ഫോം."
+        }
+      },
+      {
+        id: 1,
+        title: "Overlay Setup",
+        duration: 15,
+        subtitles: {
+          'en-IN': "Setting up your live overlay is effortless. Simply copy your browser source URL into your broadcast studio. The canvas stays completely transparent until someone donates.",
+          'hi': "लाइव ओवरले सेटअप बहुत आसान है। बस अपना ब्राउज़र सोर्स यूआरएल कॉपी करें और अपने ब्रॉडकास्ट में पेस्ट करें। स्क्रीन पूरी तरह ट्रांसपेरेंट रहती है।",
+          'ta': "லைவ் ஓவர்லே அமைப்பது மிகவும் எளிது. உங்கள் பிரவுசர் லிங்கை உங்கள் பிராட்காஸ்டில் பேஸ்ட் செய்யுங்கள். ஸ்க்ரீன் முற்றிலும் தெளிவாக இருக்கும்.",
+          'ml': "ലൈവ് ഓവർലേ സജ്ജീകരിക്കുന്നത് വളരെ എളുപ്പമാണ്. നിങ്ങളുടെ ബ്രൗസർ ലിങ്ക് ബ്രോഡ്‌കാസ്റ്റ് സ്റ്റുഡിയോയിൽ പേസ്റ്റ് ചെയ്യുക. ആരെങ്കിലും സംഭാവന നൽകുന്നതുവരെ സ്ക്രീൻ പൂർണ്ണമായും സുതാര്യമായിരിക്കും."
+        }
+      },
+      {
+        id: 2,
+        title: "UPI Notification Catch",
+        duration: 15,
+        subtitles: {
+          'en-IN': "When a viewer scans your on-screen QR code and pays using PhonePe or GPay, the Android listener reads the notification locally and sends it in milliseconds.",
+          'hi': "जब कोई व्यूअर आपका QR कोड स्कैन करके PhonePe या GPay से पेमेंट करता है, तो आपका फोन तुरंत नोटिफिकेशन को पढ़कर अलर्ट भेज देता है।",
+          'ta': "பார்வையாளர் PhonePe அல்லது GPay மூலம் பணம் அனுப்பும்போது, உங்கள் ஆண்ட்ராய்டு போன் உடனடியாக நோட்டிபிகேஷனைப் படித்து அலெர்ட் அனுப்புகிறது.",
+          'ml': "ഒരു കാഴ്ചക്കാരൻ നിങ്ങളുടെ QR കോഡ് സ്കാൻ ചെയ്ത് PhonePe അല്ലെങ്കിൽ GPay വഴി പണം അയക്കുമ്പോൾ, ഫോൺ ഉടൻ തന്നെ അറിയിപ്പ് സ്വീകരിച്ച് തത്സമയം അലർട്ട് അയക്കുന്നു."
+        }
+      },
+      {
+        id: 3,
+        title: "Live Alert & TTS",
+        duration: 15,
+        subtitles: {
+          'en-IN': "The alert card pops up on stream featuring the donor's name, donation amount, and message, announced instantly in your chosen Indian regional language.",
+          'hi': "डोनर का नाम, राशि और मैसेज के साथ लाइव अलर्ट स्क्रीन पर आता है, और आपकी पसंदीदा भारतीय भाषा में आवाज बोलती है।",
+          'ta': "டொனேஷன் அலெர்ட் திரையில் தோன்றி, நீங்கள் தேர்ந்தெடுத்த இந்திய மொழியில் குரலில் அறிவிக்கப்படுகிறது.",
+          'ml': "സംഭാവന നൽകിയ ആളുടെ പേര്, തുക, സന്ദേശം എന്നിവയോടെ അലർട്ട് സ്ക്രീനിൽ പ്രത്യക്ഷപ്പെടുകയും, നിങ്ങൾ തിരഞ്ഞെടുത്ത പ്രാദേശിക ഭാഷയിൽ ശബ്ദത്തിൽ പ്രഖ്യാപിക്കുകയും ചെയ്യുന്നു."
+        }
+      },
+      {
+        id: 4,
+        title: "Streamer's Own Voice",
+        duration: 15,
+        subtitles: {
+          'en-IN': "With the Creator Pro Own Voice Studio, you can record or upload your own real voice to personally shout out donors on stream!",
+          'hi': "क्रिएटर प्रो के साथ, आप अपनी खुद की आवाज रिकॉर्ड करके स्ट्रीम पर डोनर्स को धन्यवाद दे सकते हैं!",
+          'ta': "கிரியேட்டர் ப்ரோ மூலம், உங்கள் சொந்தக் குரலைப் பதிவுசெய்து, ஸ்ட்ரீமில் டொனேஷன் செய்பவர்களுக்கு நன்றி தெரிவிக்கலாம்!",
+          'ml': "ക്രിയേറ്റർ പ്രോയിലൂടെ നിങ്ങളുടെ സ്വന്തം ശബ്ദം റെക്കോർഡ് ചെയ്യുകയോ അപ്‌ലോഡ് ചെയ്യുകയോ ചെയ്ത്, സ്ട്രീമിൽ നേരിട്ട് നന്ദി അറിയിക്കാം!"
+        }
+      },
+      {
+        id: 5,
+        title: "Get Started Today 🚀",
+        duration: 15,
+        subtitles: {
+          'en-IN': "Ready to go live with donation alerts? Create your free streamer account, download the Android app, add your browser overlay, and start receiving direct-to-bank UPI alerts on your very next live stream!",
+          'hi': "डोनेशन अलर्ट के साथ लाइव जाने के लिए तैयार हैं? अभी साइन अप करें, Android ऐप डाउनलोड करें, और अपने अगले स्ट्रीम में तुरंत UPI अलर्ट पाएं!",
+          'ta': "டொனேஷன் அலெர்ட்களுடன் லைவ் வர தயாரா? இப்போதே இலவசமாக சைன் அப் செய்து, Android ஆப் பதிவிறக்கி, உங்கள் அடுத்த ஸ்ட்ரீமிலேயே UPI அலெர்ட்களை உடனடியாக பெறுங்கள்!",
+          'ml': "ഡൊണേഷൻ അലർട്ടുകളോടെ ലൈവ് പോകാൻ തയ്യാറാണോ? ഇപ്പോൾ തന്നെ സൗജന്യമായി സൈൻ അപ്പ് ചെയ്ത്, ആൻഡ്രോയിഡ് ആപ്പ് ഡൗൺലോഡ് ചെയ്ത് നിങ്ങളുടെ അടുത്ത സ്ട്രീമിൽ തന്നെ യു.പി.ഐ അലർട്ടുകൾ നേടൂ!"
+        }
+      }
+    ];
+
+    const TOTAL_DURATION = 90; // 90 seconds total
+    let currentTime = 0;
+    let isPlaying = false;
+    let playbackInterval = null;
+    let currentSceneIdx = 0;
+    let currentLang = 'en-IN';
+    let isMuted = false;
+
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    const btnReplay = document.getElementById('btn-replay');
+    const timeDisplay = document.getElementById('time-display');
+    const progressFilled = document.getElementById('progress-filled');
+    const progressBarWrap = document.getElementById('progress-bar-wrap');
+    const ccText = document.getElementById('cc-text');
+    const ttsAudio = document.getElementById('tts-audio');
+    const selectTutorialLang = document.getElementById('select-tutorial-lang');
+    const btnSoundToggle = document.getElementById('btn-sound-toggle');
+    const chapterCards = document.querySelectorAll('.chapter-card');
+
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateScene() {
+      const idx = Math.min(5, Math.floor(currentTime / 15));
+      if (idx !== currentSceneIdx) {
+        currentSceneIdx = idx;
+        document.querySelectorAll('.scene-viewport').forEach((s, i) => {
+          s.classList.toggle('active', i === currentSceneIdx);
+        });
+        chapterCards.forEach((c, i) => {
+          c.classList.toggle('active', i === currentSceneIdx);
+        });
+        speakCurrentScene();
+      }
+
+      // Update Subtitles
+      const scene = SCENES[currentSceneIdx];
+      if (scene && scene.subtitles[currentLang]) {
+        ccText.textContent = scene.subtitles[currentLang];
+      }
+    }
+
+    // Preloaded audio cache for instant, zero-delay speech playback
+    const preloadedAudioMap = {};
+
+    function preloadAllSceneAudio(lang) {
+      SCENES.forEach((scene, i) => {
+        const phrase = scene.subtitles[lang];
+        if (!phrase) return;
+        const key = `${lang}_${i}`;
+        if (!preloadedAudioMap[key]) {
+          const a = new Audio();
+          a.preload = 'auto';
+          a.src = `/api/tts?text=${encodeURIComponent(phrase)}&lang=${encodeURIComponent(lang)}&speed=0.92`;
+          preloadedAudioMap[key] = a;
+        }
+      });
+    }
+
+    preloadAllSceneAudio(currentLang);
+
+    function speakCurrentScene() {
+      if (isMuted) return;
+      const scene = SCENES[currentSceneIdx];
+      if (!scene) return;
+      const phrase = scene.subtitles[currentLang];
+      if (!phrase) return;
+
+      ttsAudio.pause();
+      ttsAudio.currentTime = 0;
+
+      const key = `${currentLang}_${currentSceneIdx}`;
+      const preloaded = preloadedAudioMap[key];
+      if (preloaded && preloaded.src) {
+        ttsAudio.src = preloaded.src;
+      } else {
+        ttsAudio.src = `/api/tts?text=${encodeURIComponent(phrase)}&lang=${encodeURIComponent(currentLang)}&speed=0.92`;
+      }
+      ttsAudio.play().catch(() => {});
+
+      // Preload next scene audio immediately
+      const nextIdx = (currentSceneIdx + 1) % SCENES.length;
+      const nextKey = `${currentLang}_${nextIdx}`;
+      if (!preloadedAudioMap[nextKey] && SCENES[nextIdx]) {
+        const nextPhrase = SCENES[nextIdx].subtitles[currentLang];
+        if (nextPhrase) {
+          const nextA = new Audio();
+          nextA.preload = 'auto';
+          nextA.src = `/api/tts?text=${encodeURIComponent(nextPhrase)}&lang=${encodeURIComponent(currentLang)}&speed=0.92`;
+          preloadedAudioMap[nextKey] = nextA;
+        }
+      }
+    }
+
+    function tick() {
+      currentTime += 1;
+      if (currentTime >= TOTAL_DURATION) {
+        pauseVideo();
+        currentTime = TOTAL_DURATION;
+      }
+      const pct = (currentTime / TOTAL_DURATION) * 100;
+      progressFilled.style.width = `${pct}%`;
+      timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(TOTAL_DURATION)}`;
+      updateScene();
+    }
+
+    function playVideo() {
+      isPlaying = true;
+      btnPlayPause.textContent = '⏸️';
+      speakCurrentScene();
+      clearInterval(playbackInterval);
+      playbackInterval = setInterval(tick, 1000);
+    }
+
+    function pauseVideo() {
+      isPlaying = false;
+      btnPlayPause.textContent = '▶️';
+      clearInterval(playbackInterval);
+      ttsAudio.pause();
+    }
+
+    btnPlayPause.addEventListener('click', () => {
+      if (isPlaying) pauseVideo();
+      else playVideo();
+    });
+
+    btnReplay.addEventListener('click', () => {
+      currentTime = 0;
+      currentSceneIdx = -1;
+      updateScene();
+      playVideo();
+    });
+
+    progressBarWrap.addEventListener('click', (e) => {
+      const rect = progressBarWrap.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      currentTime = Math.floor(pct * TOTAL_DURATION);
+      currentSceneIdx = -1;
+      updateScene();
+      if (isPlaying) speakCurrentScene();
+    });
+
+    chapterCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const sceneId = parseInt(card.dataset.scene, 10);
+        currentTime = sceneId * 15;
+        currentSceneIdx = -1;
+        updateScene();
+        if (!isPlaying) playVideo();
+        else speakCurrentScene();
+      });
+    });
+
+    selectTutorialLang.addEventListener('change', () => {
+      currentLang = selectTutorialLang.value;
+      preloadAllSceneAudio(currentLang);
+      updateScene();
+      if (isPlaying) speakCurrentScene();
+    });
+
+    btnSoundToggle.addEventListener('click', () => {
+      isMuted = !isMuted;
+      btnSoundToggle.textContent = isMuted ? '🔇' : '🔊';
+      if (isMuted) ttsAudio.pause();
+      else if (isPlaying) speakCurrentScene();
+    });
+
+    // 1-Click YouTube & Instagram Copy Kit
+    const btnCopyYtKit = document.getElementById('btn-copy-yt-kit');
+    if (btnCopyYtKit) {
+      btnCopyYtKit.addEventListener('click', () => {
+        const copyText = `🔥 ZERO-COMMISSION UPI LIVE STREAM ALERTS | DENALERTS (denbooks.in)
+
+Stop paying 10% platform cuts and waiting 7 days for superchat payouts! 
+Direct-to-bank Indian UPI donation alerts with multi-lingual regional voice synthesis (Hindi, Tamil, Telugu, Malayalam, English) and Creator Pro Own Voice Studio.
+
+⚡ KEY HIGHLIGHTS:
+• 0% Platform Commission — 100% money goes directly to your bank account
+• Realtime alerts from PhonePe, Google Pay, Paytm, BHIM & Bank SMS
+• Transparent 1080p stream overlay with zero broadcast lag
+• Streamer's Own Voice Studio (Record your real voice to thank donors)
+• Instant 2-minute setup — Start streaming for free today
+
+⏱️ TIMESTAMPS:
+00:00 - Introduction & 0% Bank Commission
+00:15 - 1-Click Stream Overlay Setup
+00:30 - Android UPI Notification Listener
+00:45 - Live Alert Card & Regional Voice TTS
+01:00 - Streamer's Own Voice Studio
+01:15 - Ready to Go Live: 3-Step Quickstart Guide
+
+🌐 Try Free Today: ${window.location.origin}
+⚡ Built for Indian Live Streamers!
+
+#DenAlerts #LiveStreaming #UPIAlerts #PhonePe #GooglePay #IndianGamers #GamingIndia #denbooks`;
+
+        navigator.clipboard.writeText(copyText).then(() => {
+          const original = btnCopyYtKit.innerHTML;
+          btnCopyYtKit.innerHTML = '<span>✅ Copied to Clipboard!</span>';
+          btnCopyYtKit.style.background = '#10b981';
+          btnCopyYtKit.style.color = '#000';
+          setTimeout(() => {
+            btnCopyYtKit.innerHTML = original;
+            btnCopyYtKit.style.background = '';
+            btnCopyYtKit.style.color = '';
+          }, 3000);
+        }).catch(() => {
+          alert('Could not copy automatically. You can copy the text manually from the tutorial script.');
+        });
+      });
+    }
+  </script>
+</body>
+</html>

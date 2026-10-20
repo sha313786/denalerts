@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DenAlerts — Zero-Commission UPI Alert Engine for Live Streamers</title>
+  <meta name="description" content="Receive real-time superchats from PhonePe, Google Pay, and Paytm directly into your bank account with automated Indian voice announcements and transparent OBS overlays.">
+
+  <!-- Discord & Open Graph Social Preview Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://alerts.denbooks.in/">
+  <meta property="og:site_name" content="SRB STUDIOS">
+  <meta property="og:title" content="DenAlerts — Zero-Commission UPI Alerts for Live Streamers">
+  <meta property="og:description" content="Receive direct-to-bank UPI Superchats from PhonePe, Google Pay, and Paytm with 0% platform fee. Real-time Indian voice announcements & transparent OBS overlays.">
+  <meta property="og:image" content="https://alerts.denbooks.in/og-banner.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="theme-color" content="#00f0ff">
+
+  <!-- Twitter / X Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://alerts.denbooks.in/">
+  <meta name="twitter:title" content="DenAlerts — Zero-Commission UPI Alerts for Live Streamers">
+  <meta name="twitter:description" content="Receive direct-to-bank UPI Superchats from PhonePe, Google Pay, and Paytm with 0% platform fee. Real-time Indian voice announcements & transparent OBS overlays.">
+  <meta name="twitter:image" content="https://alerts.denbooks.in/og-banner.png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/landing.css?v=21">
+</head>
+<body>
+
+  <!-- Audio Element for Interactive Simulator -->
+  <audio id="demo-chime" src="/alert.wav" preload="auto"></audio>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container nav-wrap">
+      <a href="/" class="nav-brand">
+        <div class="brand-icon-box">
+          <svg viewBox="0 0 24 24">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div class="brand-name">Den<span>Alerts</span></div>
+        <span class="brand-version-pill">v2.5</span>
+      </a>
+
+      <ul class="nav-menu">
+        <li><a href="#how-it-works">Architecture</a></li>
+        <li><a href="#simulator">Live Simulator</a></li>
+        <li><a href="#apps">Supported UPI</a></li>
+        <li><a href="#comparison">Compare</a></li>
+        <li><a href="#pricing">Plans</a></li>
+      </ul>
+
+      <div class="nav-cta-group">
+        <a href="/DenAlerts.apk" download class="btn btn-secondary">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Download APK</span>
+        </a>
+        <a href="https://discord.gg/XyKNuC4hBd" target="_blank" class="btn btn-secondary" title="Join Discord Community &amp; Live Support (#upi-alerts-support)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#5865F2" style="vertical-align:middle; margin-right:4px;">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+          <span>Discord Support</span>
+        </a>
+        <a href="/login" class="btn btn-primary">
+          <span>Open Cockpit</span>
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-badge-wrap">
+        <span class="hero-status-dot"></span>
+        <span>0% Platform Cut • Direct Bank-to-Bank UPI Settlement</span>
+      </div>
+
+      <h1 class="hero-headline">
+        Instant UPI superchats.<br>
+        <span class="highlight">Zero commission. Live on stream.</span>
+      </h1>
+
+      <p class="hero-subhead">
+        Announce real-time donations from PhonePe, Google Pay, and Paytm with guaranteed voice text-to-speech. Built for Indian gaming creators who want 100% of their money without middleman cuts.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="/login" class="btn btn-primary btn-lg">
+          <span>Get Started in 60 Seconds</span>
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+        <a href="/DenAlerts.apk" download class="btn btn-secondary btn-lg">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+            <line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+          <span>Download Android App</span>
+        </a>
+      </div>
+
+      <p class="hero-guarantee-note">
+        No KYC required • No payment gateway approvals • P2P bank transfer
+      </p>
+
+      <!-- Interactive Stream Studio Simulator -->
+      <div class="simulator-wrapper" id="simulator">
+        <div class="simulator-header">
+          <div class="simulator-window-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="simulator-title-tab">
+            <svg style="width:14px; height:14px; stroke:currentColor; fill:none;" viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            <span>OBS Studio — Live Overlay Preview [1080p 60fps]</span>
+          </div>
+          <div class="simulator-live-indicator">
+            <span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block;"></span>
+            <span>ON AIR</span>
+          </div>
+        </div>
+
+        <div class="simulator-body">
+          <!-- Control Panel (Left) -->
+          <div class="simulator-controls">
+            <div class="sim-field">
+              <label>Simulated Donor Name</label>
+              <input type="text" id="sim-donor" class="sim-input" value="Rahul Sharma">
+            </div>
+
+            <div class="sim-field">
+              <label>Donation Amount (INR)</label>
+              <div class="amount-chips">
+                <button type="button" class="amount-chip" data-amt="50">₹50</button>
+                <button type="button" class="amount-chip active" data-amt="150">₹150</button>
+                <button type="button" class="amount-chip" data-amt="500">₹500</button>
+                <button type="button" class="amount-chip" data-amt="1000">₹1,000</button>
+              </div>
+            </div>
+
+            <div class="sim-field">
+              <label>Custom Superchat Note</label>
+              <input type="text" id="sim-note" class="sim-input" value="Clutch gameplay! Keep grinding bro 🔥">
+            </div>
+
+            <div class="sim-field">
+              <label>Payment Source</label>
+              <select id="sim-app" class="sim-input">
+                <option value="PhonePe">PhonePe UPI</option>
+                <option value="Google Pay">Google Pay (GPay)</option>
+                <option value="Paytm">Paytm UPI</option>
+                <option value="BHIM">BHIM UPI</option>
+              </select>
+            </div>
+
+            <button type="button" id="btn-trigger-sim" class="sim-test-btn">
+              <svg style="width:16px; height:16px; stroke:currentColor; fill:none;" viewBox="0 0 24 24">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Test Alert on Stream</span>
+            </button>
+          </div>
+
+          <!-- Broadcast Output Stage (Right) -->
+          <div class="simulator-stage">
+            <div class="stage-ambient-lines"></div>
+
+            <div class="stage-alert-card pop-animate" id="live-alert-card">
+              <div class="card-top-row">
+                <div class="app-badge-chip" id="sim-badge-chip">
+                  <span>PhonePe UPI</span>
+                </div>
+                <div class="audio-waveform-bars" id="waveform-bars">
+                  <div class="audio-bar"></div>
+                  <div class="audio-bar"></div>
+                  <div class="audio-bar"></div>
+                  <div class="audio-bar"></div>
+                </div>
+              </div>
+
+              <div class="donor-info-row">
+                <div class="donor-display-name" id="display-donor">Rahul Sharma</div>
+                <div class="donor-display-amount" id="display-amount">₹150</div>
+              </div>
+
+              <div class="donor-display-msg" id="display-msg">
+                "Clutch gameplay! Keep grinding bro 🔥"
+              </div>
+
+              <div class="card-status-meta">
+                <span>Direct P2P Settlement</span>
+                <span>Synthesized Voice TTS Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Payment Apps -->
+  <section class="supported-section" id="apps">
+    <div class="container">
+      <div class="supported-header">Supported UPI Applications &amp; Banking SMS</div>
+      <div class="app-cards-flex">
+        <!-- PhonePe -->
+        <div class="app-brand-chip">
+          <svg viewBox="0 0 28 28">
+            <rect width="28" height="28" rx="7" fill="#5F259F"/>
+            <path d="M15.5 7h-5v2h2v12h2.5v-5.5h1.5c3 0 5-1.6 5-4.2C21.5 8.6 19.5 7 15.5 7zm.2 6.5h-2.2V9h2.2c1.8 0 2.8.7 2.8 2.2 0 1.6-1 2.3-2.8 2.3z" fill="#ffffff"/>
+            <circle cx="9.5" cy="16.5" r="1.5" fill="#ffffff"/>
+          </svg>
+          <span>PhonePe</span>
+        </div>
+
+        <!-- Google Pay -->
+        <div class="app-brand-chip">
+          <svg viewBox="0 0 28 28">
+            <rect width="28" height="28" rx="7" fill="#ffffff"/>
+            <g transform="translate(2, 2)">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.13C3.33 21.49 7.38 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.27C.46 8.2.005 10.04.005 12s.455 3.8 1.265 5.42l4.01-3.13z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.38 0 3.33 2.51 1.27 6.58l4.01 3.13c.95-2.83 3.6-4.96 6.72-4.96z"/>
+            </g>
+          </svg>
+          <span>Google Pay</span>
+        </div>
+
+        <!-- Paytm -->
+        <div class="app-brand-chip">
+          <svg viewBox="0 0 28 28">
+            <rect width="28" height="28" rx="7" fill="#002E6E"/>
+            <path d="M6 9.5h4c1.8 0 3 1.2 3 2.8 0 1.7-1.2 2.8-3 2.8H8v3.5H6V9.5zm2 4h2c.8 0 1.3-.5 1.3-1.2 0-.7-.5-1.2-1.3-1.2H8v2.4z" fill="#FFFFFF"/>
+            <path d="M14 12h2v6.6h-2V12zm0-2.3h2v1.7h-2V9.7zm3.5 4.8h1.8v-2.5h1.8v2.5H23v1.6h-1.9v4.2c0 .6.3.8.8.8h1.1v1.6h-1.8c-1.5 0-2.1-.7-2.1-2.1v-4.5h-1.6v-1.6z" fill="#00BAF2"/>
+          </svg>
+          <span>Paytm</span>
+        </div>
+
+        <!-- BHIM UPI -->
+        <div class="app-brand-chip">
+          <svg viewBox="0 0 28 28">
+            <rect width="28" height="28" rx="7" fill="#131622"/>
+            <path d="M8 7l7 7-7 7" stroke="#00A859" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M14 7l7 7-7 7" stroke="#F37021" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <span>BHIM UPI</span>
+        </div>
+
+        <!-- Bank SMS -->
+        <div class="app-brand-chip">
+          <svg viewBox="0 0 28 28">
+            <rect width="28" height="28" rx="7" fill="#1e2230"/>
+            <path d="M6 10L14 6l8 4M7 11v7M11 11v7M17 11v7M21 11v7M5 19h18M4 21.5h20" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <span>Bank SMS (HDFC, SBI, ICICI)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3-Step Architecture -->
+  <section class="architecture-section" id="how-it-works">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-meta-tag">Architecture</div>
+        <h2 class="section-heading">How DenAlerts Works</h2>
+        <p class="section-description">
+          A peer-to-peer notification relay designed specifically for streamers. No intermediate wallets. No payout schedules.
+        </p>
+      </div>
+
+      <div class="arch-cards-grid">
+        <!-- Step 1 -->
+        <div class="arch-card">
+          <span class="arch-card-number">STEP 01</span>
+          <div class="arch-card-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>Add Browser Source</h3>
+          <p>
+            Copy your unique 1920x1080 transparent browser source overlay URL directly into OBS Studio, Streamlabs, or vMix. The canvas remains completely invisible until an alert arrives.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="arch-card">
+          <span class="arch-card-number">STEP 02</span>
+          <div class="arch-card-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </div>
+          <h3>Pair Mobile App</h3>
+          <p>
+            Install the lightweight <strong>DenAlerts Android APK</strong> on the phone that receives your UPI notifications. Enter your 6-digit PIN and grant read access to incoming payment notifications.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="arch-card">
+          <span class="arch-card-number">STEP 03</span>
+          <div class="arch-card-icon">
+            <svg viewBox="0 0 24 24">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </div>
+          <h3>Instant Live Announcements</h3>
+          <p>
+            When a viewer scans your personal UPI QR code, the mobile app intercepts the transaction, extracts the donor's name, and relays it to your stream in milliseconds with native voice TTS.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="comparison-section" id="comparison">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-meta-tag">Comparison</div>
+        <h2 class="section-heading">DenAlerts vs Traditional Gateways</h2>
+        <p class="section-description">
+          Engineered to eliminate high platform cuts, delayed payouts, and complex commercial onboarding.
+        </p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="brand-col">DenAlerts Engine</th>
+              <th>Commercial Payment Platforms</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Platform Commission</strong></td>
+              <td style="color:var(--accent-emerald); font-weight:700;">0% (Direct-to-Bank)</td>
+              <td style="color:#ef4444;">5% to 30% per superchat</td>
+            </tr>
+            <tr>
+              <td><strong>Payout Latency</strong></td>
+              <td style="color:var(--accent-emerald); font-weight:700;">Instant (Realtime Settlement)</td>
+              <td>Weekly or 7-day holding period</td>
+            </tr>
+            <tr>
+              <td><strong>Merchant Registration</strong></td>
+              <td style="color:var(--accent-emerald); font-weight:700;">None (Uses Personal UPI)</td>
+              <td>Lengthy business KYC & GST documentation</td>
+            </tr>
+            <tr>
+              <td><strong>Voice TTS Reliability</strong></td>
+              <td style="color:var(--accent-emerald); font-weight:700;">Guaranteed MP3 Audio Stream</td>
+              <td>Often blocked due to OBS browser CEF limits</td>
+            </tr>
+            <tr>
+              <td><strong>Watermarks & Branding</strong></td>
+              <td>SRB STUDIOS (Free) • 100% Unbranded (Pro)</td>
+              <td style="color:#ef4444;">Mandatory commercial badge + fees</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Plans -->
+  <section class="pricing-section" id="pricing">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-meta-tag">Pricing</div>
+        <h2 class="section-heading">Transparent, Creator-First Plans</h2>
+        <p class="section-description">
+          100% of your superchat money stays in your personal bank account across all plans.
+        </p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Creator Free -->
+        <div class="pricing-card">
+          <div class="plan-tier-name">Creator Free</div>
+          <div class="plan-price-wrap">
+            <span class="plan-price">₹0</span>
+            <span class="plan-duration">/forever</span>
+          </div>
+          <p class="plan-explanation">
+            The permanent, zero-cost foundation for any Indian live streamer.
+          </p>
+
+          <ul class="plan-features-list">
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>0% Commission</strong> direct to your bank account</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Unlimited PhonePe, GPay, Paytm superchats</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Standard Indian English Voice TTS engine</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>5-layer anti-spam and profanity filter</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Developer Credit: <strong>"SRB STUDIOS • FREE PLAN"</strong></span>
+            </li>
+            <li class="dimmed">
+              <svg class="cross-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Custom Voice Models (Esports, Deep Bass, Anime)</span>
+            </li>
+            <li class="dimmed">
+              <svg class="cross-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Custom MP4 Video & GIF meme overlays</span>
+            </li>
+          </ul>
+
+          <a href="/login" class="btn btn-secondary" style="width:100%; text-align:center;">Get Started Free</a>
+        </div>
+
+        <!-- Creator Pro -->
+        <div class="pricing-card featured">
+          <span class="card-top-tag">MOST POPULAR</span>
+          <div class="plan-tier-name">Creator Pro</div>
+          <div class="plan-price-wrap">
+            <span class="plan-price">₹99</span>
+            <span class="plan-duration">/month</span>
+          </div>
+          <p class="plan-explanation">
+            For esports broadcasters and power creators.
+          </p>
+
+          <ul class="plan-features-list">
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Everything in Free, plus:</strong></span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Zero Watermarks:</strong> Remove "SRB STUDIOS" branding</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Custom Voice Models:</strong> Tournament Hype, Deep Bass, Anime &amp; Cyber Synth</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Custom Voice Pitch &amp; Audio Modulation</strong></span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Custom Sound, GIF &amp; Video meme uploads</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>On-stream live goal bars (Superchat target)</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Instant Discord Webhook integration</span>
+            </li>
+            <li>
+              <svg class="check-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Priority ultra-low latency WebSocket pipe</span>
+            </li>
+          </ul>
+
+          <a href="/login" class="btn btn-primary" style="width:100%; text-align:center;">Get Creator Pro</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="/" class="nav-brand" style="margin-bottom:14px;">
+            <div class="brand-icon-box" style="width:28px; height:28px;">
+              <svg viewBox="0 0 24 24" style="width:15px; height:15px;">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
+            <div class="brand-name" style="font-size:15px;">Den<span>Alerts</span></div>
+          </a>
+          <p class="footer-brand-desc">
+            Direct-to-bank UPI donation alerts, transparent hardware-accelerated overlays, and regional synthetic speech for Indian creators.
+          </p>
+          <div class="footer-edge-status">
+            <span class="status-dot-blink"></span>
+            <span>Cloudflare Edge Active • Mumbai &amp; Chennai</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul class="footer-links-list">
+            <li><a href="/login">Creator Dashboard</a></li>
+            <li><a href="/DenAlerts.apk" download>Android APK (v2.5)</a></li>
+            <li>
+              <a href="https://discord.gg/XyKNuC4hBd" target="_blank" class="discord-footer-link" title="Join Discord Community & Live Support">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#5865F2" style="flex-shrink:0;">
+                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+                <span>Discord Support</span>
+                <span class="discord-tag">#upi-alerts</span>
+              </a>
+            </li>
+            <li><a href="#how-it-works">Architecture</a></li>
+            <li><a href="#pricing">Pricing Plans</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Integrations</h4>
+          <ul class="footer-links-list">
+            <li><a href="#apps">PhonePe UPI</a></li>
+            <li><a href="#apps">Google Pay</a></li>
+            <li><a href="#apps">Paytm UPI</a></li>
+            <li><a href="#apps">BHIM UPI</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Security &amp; Privacy</h4>
+          <p style="font-size:13px; color:var(--text-tertiary); line-height:1.6; margin-bottom:12px;">
+            DenAlerts does not touch or store bank funds. All transactions occur directly between the sender and your bank via standard UPI protocols.
+          </p>
+          <span style="font-size:11.5px; color:var(--accent-emerald); font-weight:700;">
+            100% Peer-to-Peer • Zero Intermediate Escrow
+          </span>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <div>
+          &copy; 2026 <strong>denbooks.in</strong>. Developed by <strong>SRB STUDIOS</strong> for Indian live streamers.
+        </div>
+        <div style="display:flex; gap:16px;">
+          <span>0% Commission</span>
+          <span>•</span>
+          <span>Open Protocol</span>
+          <span>•</span>
+          <span>Made in India</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Simulator Script -->
+  <script>
+    const simDonor = document.getElementById('sim-donor');
+    const simNote = document.getElementById('sim-note');
+    const simApp = document.getElementById('sim-app');
+    const amountChips = document.querySelectorAll('.amount-chip');
+    const btnTrigger = document.getElementById('btn-trigger-sim');
+    
+    const displayDonor = document.getElementById('display-donor');
+    const displayAmount = document.getElementById('display-amount');
+    const displayMsg = document.getElementById('display-msg');
+    const simBadgeChip = document.getElementById('sim-badge-chip');
+    const liveAlertCard = document.getElementById('live-alert-card');
+    const waveformBars = document.getElementById('waveform-bars');
+    const demoChime = document.getElementById('demo-chime');
+
+    let selectedAmount = '150';
+
+    amountChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        amountChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedAmount = chip.getAttribute('data-amt');
+      });
+    });
+
+    btnTrigger.addEventListener('click', () => {
+      const donor = simDonor.value.trim() || 'Supporter';
+      const note = simNote.value.trim() || 'Keep up the good work!';
+      const app = simApp.value;
+
+      displayDonor.textContent = donor;
+      displayAmount.textContent = '₹' + selectedAmount;
+      displayMsg.textContent = '"' + note + '"';
+      simBadgeChip.innerHTML = '<span>' + app + ' UPI</span>';
+
+      // Animate card
+      liveAlertCard.classList.remove('pop-animate');
+      void liveAlertCard.offsetWidth; // Trigger reflow
+      liveAlertCard.classList.add('pop-animate');
+
+      // Play Chime
+      try {
+        demoChime.currentTime = 0;
+        demoChime.play().catch(() => {});
+      } catch (_) {}
+
+      // Waveform animation
+      waveformBars.classList.add('playing');
+
+      // Speech synthesis
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const textToSpeak = `${donor} donated ₹${selectedAmount}. ${note}`;
+        const utter = new SpeechSynthesisUtterance(textToSpeak);
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        utter.onend = () => {
+          waveformBars.classList.remove('playing');
+        };
+        window.speechSynthesis.speak(utter);
+      } else {
+        setTimeout(() => {
+          waveformBars.classList.remove('playing');
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>

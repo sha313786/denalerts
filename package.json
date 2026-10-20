@@ -1,0 +1,19 @@
+{
+  "name": "live-upi-alerts",
+  "version": "1.0.0",
+  "description": "Real-time UPI payment alerts bridge for live streams & OBS overlays",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.8",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live UPI Stream Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <!-- Embedded HTML5 Audio Elements for Stream -->
+  <audio id="alert-sound" src="/alert.wav" preload="auto"></audio>
+  <audio id="custom-alert-sound" preload="auto"></audio>
+  <audio id="tts-sound" preload="auto"></audio>
+  <audio id="own-voice-sound" preload="auto"></audio>
+
+  <!-- Overlay Container -->
+  <div id="overlay-container">
+    <div id="alert-card" class="alert-card hidden">
+      <!-- Glow backlight -->
+      <div class="card-glow"></div>
+
+      <!-- Card Content -->
+      <div class="card-inner">
+        <!-- Top App Badge & Pulse -->
+        <div class="card-header">
+          <div class="app-badge" id="app-badge">
+            <span class="app-icon" id="app-icon">⚡</span>
+            <span class="app-name" id="app-name">UPI</span>
+          </div>
+          <div class="live-pill">
+            <span class="pulse-dot"></span>
+            DONATION
+          </div>
+        </div>
+
+        <!-- Custom Media: GIF / Video Meme / Sticker (Pro) -->
+        <div id="custom-media-wrapper" class="custom-media-wrapper" style="display: none;">
+          <img id="custom-media-img" class="custom-media-content" alt="Meme" style="display: none;">
+          <video id="custom-media-video" class="custom-media-content" autoplay loop muted playsinline style="display: none;"></video>
+        </div>
+
+        <!-- Main Banner: Amount & Payer -->
+        <div class="card-body">
+          <div class="amount-wrap">
+            <span class="currency-symbol">₹</span>
+            <span class="amount-val" id="amount-val">500</span>
+          </div>
+          <div class="supporter-name-wrap">
+            <span class="from-label">FROM</span>
+            <span class="supporter-name" id="supporter-name">Anonymous Supporter</span>
+          </div>
+        </div>
+
+        <!-- Custom Message / Note (if any) -->
+        <div class="card-footer" id="card-footer">
+          <p class="donor-message" id="donor-message"></p>
+        </div>
+
+        <!-- Watermark in Popup Animation -->
+        <div class="card-watermark" id="card-watermark">
+          <span class="wm-spark">⚡</span>
+          <span class="wm-title">SRB STUDIOS</span>
+        </div>
+
+        <!-- Animated Progress / Dismiss Bar -->
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Status Indicator: Visible so streamer knows Stream Overlay connected -->
+  <div id="stream-status" class="status-indicator">Connecting to alert server...</div>
+
+  <script src="overlay.js?v=10"></script>
+</body>
+</html>

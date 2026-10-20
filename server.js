@@ -29,6 +29,7 @@ if (!fs.existsSync(SESSIONS_DIR)) {
 const sessions = new Map();
 const ipRateLimits = new Map();
 const loginRateLimits = new Map();
+const registerRateLimits = new Map();
 const ttsRateLimits = new Map();
 const adminRateLimits = new Map();
 const recentPaymentHashes = new Map();
@@ -403,6 +404,16 @@ function getLocalIpAddresses() {
   return ips.length > 0 ? ips : ['127.0.0.1'];
 }
 
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  // Allow framing ONLY on the OBS overlay route so OBS browser sources load correctly
+  if (!req.path.startsWith('/overlay')) {
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  }
+  next();
+});
+
 app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
@@ -461,6 +472,19 @@ wss.on('connection', (ws, req) => {
 // User Authentication Endpoints (Real scrypt)
 // ==========================================
 app.post('/api/auth/register', (req, res) => {
+  const ip = getClientIp(req);
+  const now = Date.now();
+  const regRecord = registerRateLimits.get(ip) || { count: 0, resetAt: now + 3600000 };
+  if (now > regRecord.resetAt) {
+    regRecord.count = 0;
+    regRecord.resetAt = now + 3600000;
+  }
+  regRecord.count++;
+  registerRateLimits.set(ip, regRecord);
+  if (regRecord.count > 5) {
+    return res.status(429).json({ success: false, error: 'Registration limit reached for this IP. Please try again later.' });
+  }
+
   try {
     const { email, password, channelName } = req.body || {};
     const result = auth.register({ email, password, channelName });

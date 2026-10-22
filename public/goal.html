@@ -444,10 +444,20 @@
     (function () {
       const urlParams = new URLSearchParams(window.location.search);
       const streamId = urlParams.get('id') || urlParams.get('code') || urlParams.get('stream') || urlParams.get('channel') || 'default';
-      const customTheme = urlParams.get('theme'); // 'gold' | 'purple' | 'default'
+      const customTheme = urlParams.get('theme'); // 'gold' | 'purple' | 'simple' | 'capsule' | 'default'
+
+      function applyGoalTheme(themeName) {
+        if (!themeName) return;
+        const theme = String(themeName).toLowerCase().trim();
+        const themes = ['theme-default', 'theme-simple', 'theme-capsule', 'theme-gold', 'theme-purple'];
+        themes.forEach(cls => document.body.classList.remove(cls));
+        if (theme && theme !== 'default') {
+          document.body.classList.add('theme-' + theme);
+        }
+      }
 
       if (customTheme) {
-        document.body.classList.add('theme-' + customTheme);
+        applyGoalTheme(customTheme);
       }
 
       if (urlParams.get('preview') === '1') {
@@ -483,6 +493,11 @@
         const target = goal.target !== undefined ? goal.target : (goal.goalTarget !== undefined ? goal.goalTarget : currentGoal.target);
         const current = goal.current !== undefined ? goal.current : (goal.goalCurrent !== undefined ? goal.goalCurrent : currentGoal.current);
         const enabled = goal.enabled !== undefined ? goal.enabled : (goal.goalEnabled !== undefined ? goal.goalEnabled : currentGoal.enabled);
+        const theme = goal.theme !== undefined ? goal.theme : (goal.goalTheme !== undefined ? goal.goalTheme : null);
+
+        if (theme) {
+          applyGoalTheme(theme);
+        }
 
         currentGoal = {
           title: title || 'Live Stream Goal',

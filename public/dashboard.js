@@ -221,7 +221,7 @@
     if (bannerOverlayUrl) bannerOverlayUrl.value = overlayFullUrl;
     if (btnPreviewOverlay) btnPreviewOverlay.href = overlayFullUrl;
 
-    const theme = (selectGoalTheme && selectGoalTheme.value) ? selectGoalTheme.value : 'simple';
+    const theme = (selectGoalTheme && selectGoalTheme.value) ? selectGoalTheme.value : 'default';
     const goalFullUrl = `${proto}//${host}/goal?code=${encodeURIComponent(sid)}${theme !== 'default' ? '&theme=' + encodeURIComponent(theme) : ''}`;
     if (inputGoalUrl) inputGoalUrl.value = goalFullUrl;
     if (btnPreviewGoal) btnPreviewGoal.href = goalFullUrl + '&preview=1';
@@ -231,6 +231,7 @@
   if (selectGoalTheme) {
     selectGoalTheme.addEventListener('change', () => {
       updateOverlayUrls(streamId);
+      saveSettings();
     });
   }
 
@@ -658,6 +659,7 @@
       goalTitle: inputGoalTitle ? inputGoalTitle.value.trim() : 'Live Stream Goal',
       goalTarget: parseFloat(inputGoalTarget ? inputGoalTarget.value : 1000) || 1000,
       goalCurrent: parseFloat(inputGoalCurrent ? inputGoalCurrent.value : 0) || 0,
+      goalTheme: selectGoalTheme ? selectGoalTheme.value : 'default',
       goalEnabled: checkGoalEnabled ? checkGoalEnabled.checked : true
     };
 
@@ -1327,6 +1329,10 @@
             if (inputGoalTarget && msg.data.settings.goalTarget !== undefined) inputGoalTarget.value = msg.data.settings.goalTarget;
             if (inputGoalCurrent && msg.data.settings.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.settings.goalCurrent;
             if (checkGoalEnabled && msg.data.settings.goalEnabled !== undefined) checkGoalEnabled.checked = msg.data.settings.goalEnabled !== false;
+            if (selectGoalTheme && msg.data.settings.goalTheme !== undefined) {
+              selectGoalTheme.value = msg.data.settings.goalTheme;
+              updateOverlayUrls(streamId);
+            }
             updateVoiceStudioVisibility();
             renderActiveOwnVoice(currentSettings);
             renderActiveMedia(currentSettings);
@@ -1357,6 +1363,10 @@
             if (inputGoalTarget && msg.data.goalTarget !== undefined) inputGoalTarget.value = msg.data.goalTarget;
             if (inputGoalCurrent && msg.data.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.goalCurrent;
             if (checkGoalEnabled && msg.data.goalEnabled !== undefined) checkGoalEnabled.checked = msg.data.goalEnabled !== false;
+            if (selectGoalTheme && msg.data.goalTheme !== undefined) {
+              selectGoalTheme.value = msg.data.goalTheme;
+              updateOverlayUrls(streamId);
+            }
             updateVoiceStudioVisibility();
             renderActiveOwnVoice(currentSettings);
             renderActiveMedia(currentSettings);
@@ -1367,6 +1377,11 @@
             if (inputGoalTarget && msg.data.goalTarget !== undefined) inputGoalTarget.value = msg.data.goalTarget;
             if (inputGoalCurrent && msg.data.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.goalCurrent;
             if (checkGoalEnabled && msg.data.goalEnabled !== undefined) checkGoalEnabled.checked = msg.data.goalEnabled !== false;
+            const newTheme = msg.data.goalTheme || msg.data.theme;
+            if (selectGoalTheme && newTheme !== undefined) {
+              selectGoalTheme.value = newTheme;
+              updateOverlayUrls(streamId);
+            }
           }
         } else if (msg.type === 'SUBSCRIPTION_UPDATED') {
           renderSubscription(msg.data);

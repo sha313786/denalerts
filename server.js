@@ -140,6 +140,7 @@ function getSession(streamId) {
         goalTitle: 'Live Stream Goal',
         goalTarget: 1000,
         goalCurrent: 0,
+        goalTheme: 'default',
         goalEnabled: true
       },
       subscription: {
@@ -640,6 +641,8 @@ app.post('/api/payment', (req, res) => {
     target: session.settings.goalTarget,
     current: session.settings.goalCurrent,
     enabled: session.settings.goalEnabled,
+    theme: session.settings.goalTheme || 'default',
+    goalTheme: session.settings.goalTheme || 'default',
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: session.settings.goalCurrent,
@@ -677,6 +680,8 @@ app.post('/api/test', (req, res) => {
       target: session.settings.goalTarget,
       current: session.settings.goalCurrent,
       enabled: session.settings.goalEnabled,
+      theme: session.settings.goalTheme || 'default',
+      goalTheme: session.settings.goalTheme || 'default',
       goalTitle: session.settings.goalTitle,
       goalTarget: session.settings.goalTarget,
       goalCurrent: session.settings.goalCurrent,
@@ -774,6 +779,7 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
   if (req.body.goalTitle !== undefined) session.settings.goalTitle = String(req.body.goalTitle).trim();
   if (req.body.goalTarget !== undefined) session.settings.goalTarget = Math.max(1, parseFloat(req.body.goalTarget) || 1000);
   if (req.body.goalCurrent !== undefined) session.settings.goalCurrent = Math.max(0, parseFloat(req.body.goalCurrent) || 0);
+  if (req.body.goalTheme !== undefined) session.settings.goalTheme = String(req.body.goalTheme).trim();
   if (req.body.goalEnabled !== undefined) session.settings.goalEnabled = Boolean(req.body.goalEnabled);
 
   saveSession(streamId);
@@ -783,6 +789,8 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
     target: session.settings.goalTarget,
     current: session.settings.goalCurrent,
     enabled: session.settings.goalEnabled,
+    theme: session.settings.goalTheme || 'default',
+    goalTheme: session.settings.goalTheme || 'default',
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: session.settings.goalCurrent,
@@ -810,6 +818,8 @@ app.get('/api/goal', (req, res) => {
       title: session.settings.goalTitle || 'Live Stream Goal',
       target: parseFloat(session.settings.goalTarget) || 1000,
       current: parseFloat(session.settings.goalCurrent) || 0,
+      theme: session.settings.goalTheme || 'default',
+      goalTheme: session.settings.goalTheme || 'default',
       enabled: session.settings.goalEnabled !== false
     }
   });
@@ -825,6 +835,8 @@ app.post('/api/goal/reset', requireStreamerAuth, (req, res) => {
     target: session.settings.goalTarget,
     current: 0,
     enabled: session.settings.goalEnabled,
+    theme: session.settings.goalTheme || 'default',
+    goalTheme: session.settings.goalTheme || 'default',
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: 0,
@@ -845,6 +857,8 @@ app.post('/api/goal/bump', requireStreamerAuth, (req, res) => {
     target: session.settings.goalTarget,
     current: session.settings.goalCurrent,
     enabled: session.settings.goalEnabled,
+    theme: session.settings.goalTheme || 'default',
+    goalTheme: session.settings.goalTheme || 'default',
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: session.settings.goalCurrent,

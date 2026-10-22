@@ -24,7 +24,7 @@
   <link rel="icon" type="image/svg+xml" href="/denalerts-logo.svg">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/dashboard.css?v=26">
+  <link rel="stylesheet" href="/dashboard.css?v=27">
 </head>
 <body>
 
@@ -96,7 +96,7 @@
       <div class="setup-item code-box">
         <div class="setup-label">
           <span class="label-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>1. Mobile Pairing PIN</span>
-          <span class="label-hint">(6-Digit Code for Android App)</span>
+          <span class="label-hint">For Android App</span>
         </div>
         <div class="setup-input-wrap">
           <input type="text" id="streamer-code-val" readonly value="Loading..." class="key-field" style="font-size:18px; font-weight:800; letter-spacing:2px; text-align:center;">
@@ -105,7 +105,7 @@
             <span>Copy PIN</span>
           </button>
         </div>
-        <div id="pairing-alias-sub" style="font-size:11.5px; color:var(--text-muted); margin-top:5px;">
+        <div id="pairing-alias-sub" style="font-size:11.5px; color:var(--text-muted); margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
           Phone PIN: <strong id="pairing-pin-text" style="color:#34d399; font-family:'JetBrains Mono',monospace;">...</strong> <span id="pairing-user-text" style="color:#94a3b8;"></span>
         </div>
       </div>
@@ -114,7 +114,7 @@
       <div class="setup-item flex-1">
         <div class="setup-label">
           <span class="label-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>2. OBS Browser Source URL</span>
-          <span class="label-hint">(Paste in OBS / Streamlabs 1920x1080)</span>
+          <span class="label-hint">OBS / Streamlabs (1080p)</span>
         </div>
         <div class="setup-input-wrap">
           <input type="text" id="banner-overlay-url" readonly value="Loading..." class="url-field">

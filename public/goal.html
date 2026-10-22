@@ -297,6 +297,36 @@
       border-color: rgba(168, 85, 247, 0.4);
     }
 
+    /* Custom Pro Theme (Dynamic User Palette) */
+    :root {
+      --goal-bar-start: #00f0ff;
+      --goal-bar-end: #ec4899;
+      --goal-glow: #00f0ff;
+      --goal-border: rgba(0, 240, 255, 0.35);
+      --goal-text: #00f0ff;
+      --goal-bg: rgba(9, 13, 24, 0.9);
+    }
+    body.theme-custom .widget-container {
+      background: var(--goal-bg) !important;
+      border-color: var(--goal-border) !important;
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 25px var(--goal-glow) !important;
+    }
+    body.theme-custom .progress-fill {
+      background: linear-gradient(90deg, var(--goal-bar-start) 0%, var(--goal-bar-end) 100%) !important;
+      box-shadow: 0 0 16px var(--goal-glow) !important;
+    }
+    body.theme-custom .percentage-badge {
+      background: rgba(0, 0, 0, 0.45) !important;
+      color: var(--goal-text) !important;
+      border-color: var(--goal-border) !important;
+    }
+    body.theme-custom .goal-amount-raised {
+      color: var(--goal-text) !important;
+    }
+    body.theme-custom .goal-icon {
+      border-color: var(--goal-border) !important;
+    }
+
     /* Simple Minimalist Streamer Theme */
     body.theme-simple .widget-container {
       background: rgba(10, 16, 29, 0.92) !important;
@@ -444,20 +474,45 @@
     (function () {
       const urlParams = new URLSearchParams(window.location.search);
       const streamId = urlParams.get('id') || urlParams.get('code') || urlParams.get('stream') || urlParams.get('channel') || 'default';
-      const customTheme = urlParams.get('theme'); // 'gold' | 'purple' | 'simple' | 'capsule' | 'default'
+      const customTheme = urlParams.get('theme'); // 'gold' | 'purple' | 'simple' | 'capsule' | 'custom' | 'default'
 
-      function applyGoalTheme(themeName) {
+      function applyCustomColors(colors) {
+        if (!colors) return;
+        const root = document.documentElement;
+        if (colors.barStart) root.style.setProperty('--goal-bar-start', colors.barStart);
+        if (colors.barEnd) root.style.setProperty('--goal-bar-end', colors.barEnd);
+        if (colors.glow) {
+          root.style.setProperty('--goal-glow', colors.glow);
+          root.style.setProperty('--goal-border', colors.glow);
+        }
+        if (colors.text) root.style.setProperty('--goal-text', colors.text);
+        if (colors.bg) root.style.setProperty('--goal-bg', colors.bg);
+      }
+
+      function applyGoalTheme(themeName, customColors) {
         if (!themeName) return;
         const theme = String(themeName).toLowerCase().trim();
-        const themes = ['theme-default', 'theme-simple', 'theme-capsule', 'theme-gold', 'theme-purple'];
+        const themes = ['theme-default', 'theme-simple', 'theme-capsule', 'theme-gold', 'theme-purple', 'theme-custom'];
         themes.forEach(cls => document.body.classList.remove(cls));
         if (theme && theme !== 'default') {
           document.body.classList.add('theme-' + theme);
+        }
+        if (customColors) {
+          applyCustomColors(customColors);
         }
       }
 
       if (customTheme) {
         applyGoalTheme(customTheme);
+      }
+
+      // Check URL query params for custom color overrides
+      const qBar1 = urlParams.get('bar1') || urlParams.get('start');
+      const qBar2 = urlParams.get('bar2') || urlParams.get('end');
+      const qGlow = urlParams.get('glow');
+      const qText = urlParams.get('text');
+      if (qBar1 || qBar2 || qGlow || qText) {
+        applyCustomColors({ barStart: qBar1, barEnd: qBar2, glow: qGlow, text: qText });
       }
 
       if (urlParams.get('preview') === '1') {
@@ -494,9 +549,12 @@
         const current = goal.current !== undefined ? goal.current : (goal.goalCurrent !== undefined ? goal.goalCurrent : currentGoal.current);
         const enabled = goal.enabled !== undefined ? goal.enabled : (goal.goalEnabled !== undefined ? goal.goalEnabled : currentGoal.enabled);
         const theme = goal.theme !== undefined ? goal.theme : (goal.goalTheme !== undefined ? goal.goalTheme : null);
+        const customColors = goal.goalCustomColors || goal.customColors;
 
         if (theme) {
-          applyGoalTheme(theme);
+          applyGoalTheme(theme, customColors);
+        } else if (customColors) {
+          applyCustomColors(customColors);
         }
 
         currentGoal = {

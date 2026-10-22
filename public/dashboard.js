@@ -112,6 +112,16 @@
   const goalLockedBanner = document.getElementById('goal-locked-banner');
   const goalProBadge = document.getElementById('goal-pro-badge');
   const selectGoalTheme = document.getElementById('select-goal-theme');
+  const goalCustomColorWrap = document.getElementById('goal-custom-color-wrap');
+  const inputGoalBarStart = document.getElementById('input-goal-bar-start');
+  const textGoalBarStart = document.getElementById('text-goal-bar-start');
+  const inputGoalBarEnd = document.getElementById('input-goal-bar-end');
+  const textGoalBarEnd = document.getElementById('text-goal-bar-end');
+  const inputGoalGlow = document.getElementById('input-goal-glow');
+  const textGoalGlow = document.getElementById('text-goal-glow');
+  const inputGoalText = document.getElementById('input-goal-text');
+  const textGoalText = document.getElementById('text-goal-text');
+  const btnGoalPalettes = document.querySelectorAll('.btn-goal-palette');
 
   let ws = null;
   let historyData = [];
@@ -222,17 +232,113 @@
     if (btnPreviewOverlay) btnPreviewOverlay.href = overlayFullUrl;
 
     const theme = (selectGoalTheme && selectGoalTheme.value) ? selectGoalTheme.value : 'default';
-    const goalFullUrl = `${proto}//${host}/goal?code=${encodeURIComponent(sid)}${theme !== 'default' ? '&theme=' + encodeURIComponent(theme) : ''}`;
+    let goalFullUrl = `${proto}//${host}/goal?code=${encodeURIComponent(sid)}`;
+    if (theme !== 'default') {
+      goalFullUrl += `&theme=${encodeURIComponent(theme)}`;
+    }
+    if (theme === 'custom') {
+      const b1 = (inputGoalBarStart ? inputGoalBarStart.value : '#00f0ff').replace('#', '');
+      const b2 = (inputGoalBarEnd ? inputGoalBarEnd.value : '#ec4899').replace('#', '');
+      const gl = (inputGoalGlow ? inputGoalGlow.value : '#00f0ff').replace('#', '');
+      const tx = (inputGoalText ? inputGoalText.value : '#00f0ff').replace('#', '');
+      goalFullUrl += `&bar1=%23${b1}&bar2=%23${b2}&glow=%23${gl}&text=%23${tx}`;
+    }
     if (inputGoalUrl) inputGoalUrl.value = goalFullUrl;
     if (btnPreviewGoal) btnPreviewGoal.href = goalFullUrl + '&preview=1';
   }
   updateOverlayUrls(streamId);
 
+  function updateGoalCustomVisibility() {
+    if (!goalCustomColorWrap || !selectGoalTheme) return;
+    const isCustom = selectGoalTheme.value === 'custom';
+    goalCustomColorWrap.style.display = isCustom ? 'block' : 'none';
+  }
+
   if (selectGoalTheme) {
     selectGoalTheme.addEventListener('change', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (selectGoalTheme.value === 'custom' && !isPro) {
+        alert("Custom Goal Bar Brand Colors are exclusive to Creator Pro. Activate your free trial or upgrade to unlock.");
+        selectGoalTheme.value = 'default';
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        updateGoalCustomVisibility();
+        updateOverlayUrls(streamId);
+        return;
+      }
+      updateGoalCustomVisibility();
       updateOverlayUrls(streamId);
       saveSettings();
     });
+  }
+
+  function syncColorPair(colorInput, textInput) {
+    if (!colorInput || !textInput) return;
+    colorInput.addEventListener('input', () => {
+      textInput.value = colorInput.value;
+      updateOverlayUrls(streamId);
+    });
+    colorInput.addEventListener('change', () => {
+      textInput.value = colorInput.value;
+      updateOverlayUrls(streamId);
+      saveSettings();
+    });
+    textInput.addEventListener('input', () => {
+      const val = textInput.value.trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        colorInput.value = val;
+        updateOverlayUrls(streamId);
+      }
+    });
+    textInput.addEventListener('change', () => {
+      const val = textInput.value.trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        colorInput.value = val;
+        updateOverlayUrls(streamId);
+        saveSettings();
+      }
+    });
+  }
+
+  syncColorPair(inputGoalBarStart, textGoalBarStart);
+  syncColorPair(inputGoalBarEnd, textGoalBarEnd);
+  syncColorPair(inputGoalGlow, textGoalGlow);
+  syncColorPair(inputGoalText, textGoalText);
+
+  if (btnGoalPalettes && btnGoalPalettes.length) {
+    btnGoalPalettes.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const start = btn.getAttribute('data-start');
+        const end = btn.getAttribute('data-end');
+        const glow = btn.getAttribute('data-glow');
+        const text = btn.getAttribute('data-text');
+        if (inputGoalBarStart) { inputGoalBarStart.value = start; if (textGoalBarStart) textGoalBarStart.value = start; }
+        if (inputGoalBarEnd) { inputGoalBarEnd.value = end; if (textGoalBarEnd) textGoalBarEnd.value = end; }
+        if (inputGoalGlow) { inputGoalGlow.value = glow; if (textGoalGlow) textGoalGlow.value = glow; }
+        if (inputGoalText) { inputGoalText.value = text; if (textGoalText) textGoalText.value = text; }
+        updateOverlayUrls(streamId);
+        saveSettings();
+      });
+    });
+  }
+
+  function applyCustomColorsToInputs(colors) {
+    if (!colors) return;
+    if (colors.barStart && inputGoalBarStart) {
+      inputGoalBarStart.value = colors.barStart;
+      if (textGoalBarStart) textGoalBarStart.value = colors.barStart;
+    }
+    if (colors.barEnd && inputGoalBarEnd) {
+      inputGoalBarEnd.value = colors.barEnd;
+      if (textGoalBarEnd) textGoalBarEnd.value = colors.barEnd;
+    }
+    if (colors.glow && inputGoalGlow) {
+      inputGoalGlow.value = colors.glow;
+      if (textGoalGlow) textGoalGlow.value = colors.glow;
+    }
+    if (colors.text && inputGoalText) {
+      inputGoalText.value = colors.text;
+      if (textGoalText) textGoalText.value = colors.text;
+    }
   }
 
   // Copy Buttons
@@ -660,6 +766,12 @@
       goalTarget: parseFloat(inputGoalTarget ? inputGoalTarget.value : 1000) || 1000,
       goalCurrent: parseFloat(inputGoalCurrent ? inputGoalCurrent.value : 0) || 0,
       goalTheme: selectGoalTheme ? selectGoalTheme.value : 'default',
+      goalCustomColors: {
+        barStart: inputGoalBarStart ? inputGoalBarStart.value : '#00f0ff',
+        barEnd: inputGoalBarEnd ? inputGoalBarEnd.value : '#ec4899',
+        glow: inputGoalGlow ? inputGoalGlow.value : '#00f0ff',
+        text: inputGoalText ? inputGoalText.value : '#00f0ff'
+      },
       goalEnabled: checkGoalEnabled ? checkGoalEnabled.checked : true
     };
 
@@ -1343,6 +1455,10 @@
               selectGoalTheme.value = msg.data.settings.goalTheme;
               updateOverlayUrls(streamId);
             }
+            if (msg.data.settings.goalCustomColors) {
+              applyCustomColorsToInputs(msg.data.settings.goalCustomColors);
+            }
+            updateGoalCustomVisibility();
             updateVoiceStudioVisibility();
             renderActiveOwnVoice(currentSettings);
             renderActiveMedia(currentSettings);
@@ -1377,6 +1493,10 @@
               selectGoalTheme.value = msg.data.goalTheme;
               updateOverlayUrls(streamId);
             }
+            if (msg.data.goalCustomColors) {
+              applyCustomColorsToInputs(msg.data.goalCustomColors);
+            }
+            updateGoalCustomVisibility();
             updateVoiceStudioVisibility();
             renderActiveOwnVoice(currentSettings);
             renderActiveMedia(currentSettings);
@@ -1392,6 +1512,10 @@
               selectGoalTheme.value = newTheme;
               updateOverlayUrls(streamId);
             }
+            if (msg.data.goalCustomColors || msg.data.customColors) {
+              applyCustomColorsToInputs(msg.data.goalCustomColors || msg.data.customColors);
+            }
+            updateGoalCustomVisibility();
           }
         } else if (msg.type === 'SUBSCRIPTION_UPDATED') {
           renderSubscription(msg.data);

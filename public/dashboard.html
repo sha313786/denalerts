@@ -24,7 +24,7 @@
   <link rel="icon" type="image/svg+xml" href="/denalerts-logo.svg">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/dashboard.css?v=27">
+  <link rel="stylesheet" href="/dashboard.css?v=28">
 </head>
 <body>
 
@@ -670,7 +670,56 @@
                 <option value="capsule">💊 Compact Pill Capsule</option>
                 <option value="gold">🌟 Neon Golden Amber</option>
                 <option value="purple">🔮 Cyber Purple &amp; Cyan</option>
+                <option value="custom">🎨 Custom Brand Colors (👑 PRO)</option>
               </select>
+            </div>
+
+            <!-- Custom Brand Colors Drawer (PRO Exclusive) -->
+            <div id="goal-custom-color-wrap" style="display:none; background:rgba(0,0,0,0.35); border:1px solid rgba(0,240,255,0.25); border-radius:8px; padding:10px 12px; margin-top:4px; margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:11px; font-weight:800; color:#00f0ff; text-transform:uppercase; letter-spacing:0.5px;">🎨 Custom Brand Palette</span>
+                <span style="background:linear-gradient(135deg, #00f0ff, #ec4899); color:#000; font-size:9px; font-weight:900; padding:1px 6px; border-radius:8px;">PRO</span>
+              </div>
+
+              <!-- Quick Palette Presets -->
+              <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+                <button type="button" class="btn btn-secondary btn-xs btn-goal-palette" data-start="#00f0ff" data-end="#ec4899" data-glow="#00f0ff" data-text="#00f0ff">⚡ Cyberpunk</button>
+                <button type="button" class="btn btn-secondary btn-xs btn-goal-palette" data-start="#10b981" data-end="#fbbf24" data-glow="#10b981" data-text="#34d399">🌿 Emerald Gold</button>
+                <button type="button" class="btn btn-secondary btn-xs btn-goal-palette" data-start="#ef4444" data-end="#f97316" data-glow="#ef4444" data-text="#f87171">🔥 Inferno</button>
+                <button type="button" class="btn btn-secondary btn-xs btn-goal-palette" data-start="#8b5cf6" data-end="#3b82f6" data-glow="#8b5cf6" data-text="#c084fc">🔮 Electric Violet</button>
+                <button type="button" class="btn btn-secondary btn-xs btn-goal-palette" data-start="#fbbf24" data-end="#f59e0b" data-glow="#fbbf24" data-text="#fde047">🌟 Pure Gold</button>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <div>
+                  <label for="input-goal-bar-start" style="font-size:10.5px; color:#94a3b8; display:block; margin-bottom:3px; font-weight:600;">Bar Gradient Start</label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <input type="color" id="input-goal-bar-start" value="#00f0ff" style="width:34px; height:28px; border:none; border-radius:4px; cursor:pointer; background:none; padding:0;">
+                    <input type="text" id="text-goal-bar-start" value="#00f0ff" maxlength="7" style="flex:1; min-width:0; padding:5px 6px; font-size:11px; font-family:'JetBrains Mono',monospace; background:#080c14; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff;">
+                  </div>
+                </div>
+                <div>
+                  <label for="input-goal-bar-end" style="font-size:10.5px; color:#94a3b8; display:block; margin-bottom:3px; font-weight:600;">Bar Gradient End</label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <input type="color" id="input-goal-bar-end" value="#ec4899" style="width:34px; height:28px; border:none; border-radius:4px; cursor:pointer; background:none; padding:0;">
+                    <input type="text" id="text-goal-bar-end" value="#ec4899" maxlength="7" style="flex:1; min-width:0; padding:5px 6px; font-size:11px; font-family:'JetBrains Mono',monospace; background:#080c14; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff;">
+                  </div>
+                </div>
+                <div>
+                  <label for="input-goal-glow" style="font-size:10.5px; color:#94a3b8; display:block; margin-bottom:3px; font-weight:600;">Glow &amp; Border</label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <input type="color" id="input-goal-glow" value="#00f0ff" style="width:34px; height:28px; border:none; border-radius:4px; cursor:pointer; background:none; padding:0;">
+                    <input type="text" id="text-goal-glow" value="#00f0ff" maxlength="7" style="flex:1; min-width:0; padding:5px 6px; font-size:11px; font-family:'JetBrains Mono',monospace; background:#080c14; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff;">
+                  </div>
+                </div>
+                <div>
+                  <label for="input-goal-text" style="font-size:10.5px; color:#94a3b8; display:block; margin-bottom:3px; font-weight:600;">Raised Text Accent</label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <input type="color" id="input-goal-text" value="#00f0ff" style="width:34px; height:28px; border:none; border-radius:4px; cursor:pointer; background:none; padding:0;">
+                    <input type="text" id="text-goal-text" value="#00f0ff" maxlength="7" style="flex:1; min-width:0; padding:5px 6px; font-size:11px; font-family:'JetBrains Mono',monospace; background:#080c14; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff;">
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- OBS Browser Source URL -->
@@ -858,7 +907,7 @@
               <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg><strong>Custom Voice Models:</strong> Tournament Hype, Deep Bass, Anime &amp; Cyber Synth</li>
               <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg><strong>Custom Voice Pitch &amp; Audio Modulation</strong></li>
               <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>Custom Sound, GIF &amp; Video meme uploads</li>
-              <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>On-stream live goal bars (Superchat target)</li>
+              <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>On-stream live goal bars with <strong>Custom Brand Colors &amp; Styles</strong></li>
               <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>Instant Discord Webhook integration</li>
               <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>Priority ultra-low latency WebSocket pipe</li>
             </ul>

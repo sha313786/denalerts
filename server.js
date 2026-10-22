@@ -141,6 +141,12 @@ function getSession(streamId) {
         goalTarget: 1000,
         goalCurrent: 0,
         goalTheme: 'default',
+        goalCustomColors: {
+          barStart: '#00f0ff',
+          barEnd: '#ec4899',
+          glow: '#00f0ff',
+          text: '#00f0ff'
+        },
         goalEnabled: true
       },
       subscription: {
@@ -643,6 +649,8 @@ app.post('/api/payment', (req, res) => {
     enabled: session.settings.goalEnabled,
     theme: session.settings.goalTheme || 'default',
     goalTheme: session.settings.goalTheme || 'default',
+    goalCustomColors: session.settings.goalCustomColors || null,
+    customColors: session.settings.goalCustomColors || null,
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: session.settings.goalCurrent,
@@ -780,6 +788,14 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
   if (req.body.goalTarget !== undefined) session.settings.goalTarget = Math.max(1, parseFloat(req.body.goalTarget) || 1000);
   if (req.body.goalCurrent !== undefined) session.settings.goalCurrent = Math.max(0, parseFloat(req.body.goalCurrent) || 0);
   if (req.body.goalTheme !== undefined) session.settings.goalTheme = String(req.body.goalTheme).trim();
+  if (req.body.goalCustomColors !== undefined && typeof req.body.goalCustomColors === 'object') {
+    session.settings.goalCustomColors = {
+      barStart: String(req.body.goalCustomColors.barStart || '#00f0ff'),
+      barEnd: String(req.body.goalCustomColors.barEnd || '#ec4899'),
+      glow: String(req.body.goalCustomColors.glow || '#00f0ff'),
+      text: String(req.body.goalCustomColors.text || '#00f0ff')
+    };
+  }
   if (req.body.goalEnabled !== undefined) session.settings.goalEnabled = Boolean(req.body.goalEnabled);
 
   saveSession(streamId);
@@ -791,6 +807,8 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
     enabled: session.settings.goalEnabled,
     theme: session.settings.goalTheme || 'default',
     goalTheme: session.settings.goalTheme || 'default',
+    goalCustomColors: session.settings.goalCustomColors || null,
+    customColors: session.settings.goalCustomColors || null,
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: session.settings.goalCurrent,
@@ -820,6 +838,8 @@ app.get('/api/goal', (req, res) => {
       current: parseFloat(session.settings.goalCurrent) || 0,
       theme: session.settings.goalTheme || 'default',
       goalTheme: session.settings.goalTheme || 'default',
+      goalCustomColors: session.settings.goalCustomColors || null,
+      customColors: session.settings.goalCustomColors || null,
       enabled: session.settings.goalEnabled !== false
     }
   });
@@ -837,6 +857,8 @@ app.post('/api/goal/reset', requireStreamerAuth, (req, res) => {
     enabled: session.settings.goalEnabled,
     theme: session.settings.goalTheme || 'default',
     goalTheme: session.settings.goalTheme || 'default',
+    goalCustomColors: session.settings.goalCustomColors || null,
+    customColors: session.settings.goalCustomColors || null,
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: 0,
@@ -859,6 +881,8 @@ app.post('/api/goal/bump', requireStreamerAuth, (req, res) => {
     enabled: session.settings.goalEnabled,
     theme: session.settings.goalTheme || 'default',
     goalTheme: session.settings.goalTheme || 'default',
+    goalCustomColors: session.settings.goalCustomColors || null,
+    customColors: session.settings.goalCustomColors || null,
     goalTitle: session.settings.goalTitle,
     goalTarget: session.settings.goalTarget,
     goalCurrent: session.settings.goalCurrent,

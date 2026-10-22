@@ -238,6 +238,21 @@ body {
   color: #00f0ff !important;
 }
 
+/* Custom Color Input Swatch Styling */
+input[type="color"] {
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

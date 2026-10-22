@@ -5,6 +5,7 @@ Allow: /dashboard
 Allow: /overlay
 Allow: /goal
 Allow: /tutorial
+Allow: /refund-and-cancellation
 Disallow: /admin
 Disallow: /api/admin/
 Disallow: /api/

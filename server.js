@@ -1567,6 +1567,8 @@ app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 app.get('/overlay', (req, res) => res.sendFile(path.join(__dirname, 'public', 'overlay.html')));
 app.get('/goal', (req, res) => res.sendFile(path.join(__dirname, 'public', 'goal.html')));
 app.get('/tutorial', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tutorial.html')));
+app.get('/refund-and-cancellation', (req, res) => res.sendFile(path.join(__dirname, 'public', 'refund-and-cancellation.html')));
+app.get('/refund', (req, res) => res.sendFile(path.join(__dirname, 'public', 'refund-and-cancellation.html')));
 
 server.listen(PORT, () => {
   console.log('========================================================');

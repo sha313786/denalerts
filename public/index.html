@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/landing.css?v=35">
+  <link rel="stylesheet" href="/landing.css?v=36">
 </head>
 <body>
 
@@ -53,10 +53,10 @@
 
       <ul class="nav-menu">
         <li><a href="#watch-it-work">Live Demo</a></li>
-        <li><a href="#two-ways">How It Works</a></li>
+        <li><a href="#architecture">Architecture</a></li>
         <li><a href="#features">Features</a></li>
         <li><a href="#apps">Apps</a></li>
-        <li><a href="#streamers">Streamers</a></li>
+        <li><a href="#guarantees">Guarantees</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><a href="#faq">FAQ</a></li>
       </ul>
@@ -186,40 +186,32 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
           <span>YouTube Live</span>
         </div>
-        <div class="platform-badge">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="#9146FF"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-          <span>Twitch</span>
-        </div>
-        <div class="platform-badge">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="#53FC18"><path d="M3 2h5.5v7.2L13.8 2H21l-7.3 9.4L21 22h-7.2l-5.3-7.2V22H3V2z"/></svg>
-          <span>Kick</span>
-        </div>
       </div>
     </div>
   </section>
 
-  <!-- Two Ways Creators Get Tipped (Visual Architecture) -->
-  <section class="two-ways-section" id="two-ways">
+  <!-- Two Pillars of DenAlerts Architecture -->
+  <section class="two-ways-section" id="architecture">
     <div class="container">
       <div style="text-align:center;">
-        <span class="section-meta-tag">How You Get Paid</span>
-        <h2 class="section-heading">Two Ways to Receive Live Superchats</h2>
+        <span class="section-meta-tag">System Architecture</span>
+        <h2 class="section-heading">How Direct UPI Alerts Work (0% Cut)</h2>
         <p class="section-description">
-          Pick whatever fits your streaming setup: auto-detect tips on your phone or share a dedicated web tip link. Either way, every payment fires a live overlay alert on stream in under 200ms.
+          DenAlerts eliminates intermediate escrow wallets. The stream overlay and companion app work together as a lightweight notification bridge.
         </p>
       </div>
 
       <div class="two-ways-grid">
-        <!-- Way 1: Android Companion App -->
+        <!-- Pillar 1: Personal QR & P2P Transfer -->
         <div class="two-ways-card highlight">
           <div class="two-ways-badge-row">
-            <span class="two-ways-badge badge-cyan">Primary Architecture</span>
-            <span style="font-size:12px; color:var(--text-tertiary); font-weight:600;">Free &amp; Pro</span>
+            <span class="two-ways-badge badge-cyan">Pillar 01 • On-Stream</span>
+            <span style="font-size:12px; color:var(--text-tertiary); font-weight:600;">Direct-to-Bank</span>
           </div>
 
-          <h3>Android Companion App</h3>
+          <h3>Your Personal UPI QR Code</h3>
           <p class="card-subtitle">
-            Auto-detects incoming UPI notifications on your phone and fires the OBS alert instantly.
+            Display your personal UPI QR on stream. Viewers pay peer-to-peer straight into your savings account.
           </p>
 
           <!-- Flow visual -->
@@ -229,20 +221,20 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="#00f0ff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               </div>
               <div class="flow-step-text">
-                <div class="flow-step-title">₹200 received from Rahul</div>
-                <div class="flow-step-desc">PhonePe / Google Pay / Paytm notification</div>
+                <div class="flow-step-title">Viewer Scans QR Code on Stream</div>
+                <div class="flow-step-desc">Pays via PhonePe, GPay, Paytm, BHIM, or Cred</div>
               </div>
             </div>
 
-            <div class="flow-step-arrow">▼ &lt;180ms instant WebSocket push</div>
+            <div class="flow-step-arrow">▼ 100% Peer-to-Peer NPCI Settlement</div>
 
             <div class="flow-step-row" style="background:rgba(0,240,255,0.06); border-color:rgba(0,240,255,0.25);">
               <div class="flow-step-icon" style="background:rgba(0,240,255,0.15);">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#00f0ff" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#00f0ff" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div class="flow-step-text">
-                <div class="flow-step-title" style="color:var(--accent-cyan);">Rahul donated ₹200 · Live on OBS</div>
-                <div class="flow-step-desc">Pop-up alert banner + Indian voice announcement</div>
+                <div class="flow-step-title" style="color:var(--accent-cyan);">Money Lands in Your Bank Account</div>
+                <div class="flow-step-desc">0% platform commission • Zero escrow hold</div>
               </div>
             </div>
           </div>
@@ -250,19 +242,72 @@
           <ul class="two-ways-list">
             <li>
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Works with personal GPay, PhonePe, Paytm &amp; bank SMS</span>
+              <span>Works with standard personal savings accounts</span>
             </li>
             <li>
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>No business account or merchant approval needed</span>
+              <span>No merchant registration, GSTIN, or gateway paperwork</span>
             </li>
             <li>
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Dedicated <strong>Live Stream Mode</strong> toggle protects off-stream privacy</span>
+              <span>Zero withdrawal delays — funds are instantly yours</span>
+            </li>
+          </ul>
+
+          <a href="/login" class="btn btn-primary" style="width:100%; text-align:center;">
+            Open Creator Cockpit
+          </a>
+        </div>
+
+        <!-- Pillar 2: Android Companion Relay -->
+        <div class="two-ways-card">
+          <div class="two-ways-badge-row">
+            <span class="two-ways-badge badge-emerald">Pillar 02 • Companion</span>
+            <span style="font-size:12px; color:var(--text-tertiary); font-weight:600;">Encrypted WebSocket</span>
+          </div>
+
+          <h3>Android Companion App (v2.5)</h3>
+          <p class="card-subtitle">
+            Detects bank credit notifications in real-time and pushes animated alerts to OBS in &lt;180ms.
+          </p>
+
+          <!-- Flow visual -->
+          <div class="flow-diagram-box">
+            <div class="flow-step-row">
+              <div class="flow-step-icon" style="background:rgba(16,185,129,0.25);">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#10b981" stroke-width="2" fill="none"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div class="flow-step-text">
+                <div class="flow-step-title">App Catches Payment Notification</div>
+                <div class="flow-step-desc">Extracts donor name &amp; superchat amount</div>
+              </div>
+            </div>
+
+            <div class="flow-step-arrow">▼ &lt;180ms Ultra-Low Latency WebSocket</div>
+
+            <div class="flow-step-row" style="background:rgba(16,185,129,0.06); border-color:rgba(16,185,129,0.25);">
+              <div class="flow-step-icon" style="background:rgba(16,185,129,0.15);">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#10b981" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <div class="flow-step-text">
+                <div class="flow-step-title" style="color:var(--accent-emerald);">Animated Alert &amp; Indian TTS on OBS</div>
+                <div class="flow-step-desc">1080p 60fps transparent browser source</div>
+              </div>
+            </div>
+          </div>
+
+          <ul class="two-ways-list">
+            <li>
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Pair once with a persistent 6-digit PIN</span>
             </li>
             <li>
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Persistent 6-digit PIN pairing saves credentials forever</span>
+              <span><strong>Live Stream Mode</strong> toggle prevents off-stream notification leaks</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Listens to GPay, PhonePe, Paytm and bank SMS credits</span>
             </li>
           </ul>
 
@@ -270,79 +315,18 @@
             Download Android App (v2.5)
           </a>
         </div>
-
-        <!-- Way 2: Web Tip Page & Dynamic QR -->
-        <div class="two-ways-card">
-          <div class="two-ways-badge-row">
-            <span class="two-ways-badge badge-emerald">Direct Tip Page</span>
-            <span style="font-size:12px; color:var(--text-tertiary); font-weight:600;">No Phone Required</span>
-          </div>
-
-          <h3>Streamer Tip Page &amp; QR</h3>
-          <p class="card-subtitle">
-            One permanent link and dynamic QR code on stream. Viewers tip directly with custom messages.
-          </p>
-
-          <!-- Flow visual -->
-          <div class="flow-diagram-box">
-            <div class="flow-step-row">
-              <div class="flow-step-icon" style="background:rgba(16,185,129,0.25);">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#10b981" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              </div>
-              <div class="flow-step-text">
-                <div class="flow-step-title">alerts.denbooks.in/tip/yourname</div>
-                <div class="flow-step-desc">Personal streamer link &amp; scan-to-pay QR code</div>
-              </div>
-            </div>
-
-            <div class="flow-step-arrow">▼ Direct UPI payment intent</div>
-
-            <div class="flow-step-row" style="background:rgba(16,185,129,0.06); border-color:rgba(16,185,129,0.25);">
-              <div class="flow-step-icon" style="background:rgba(16,185,129,0.15);">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="#10b981" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <div class="flow-step-text">
-                <div class="flow-step-title" style="color:var(--accent-emerald);">₹500 Superchat with Custom Message</div>
-                <div class="flow-step-desc">Lands 100% in your bank • Phone off alerts enabled</div>
-              </div>
-            </div>
-          </div>
-
-          <ul class="two-ways-list">
-            <li>
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Works even when your phone is turned off or battery dies</span>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Viewers can attach custom donor notes, emojis &amp; memes</span>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Direct peer-to-peer settlement into your personal bank VPA</span>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>0% platform commission with zero escrow holds</span>
-            </li>
-          </ul>
-
-          <a href="/login" class="btn btn-primary" style="width:100%; text-align:center;">
-            Claim Your Streamer Handle
-          </a>
-        </div>
       </div>
     </div>
   </section>
 
-  <!-- Watch It Work: Live Demo & Recent Superchats Feed -->
+  <!-- Interactive Alert Studio & Presets Tester -->
   <section class="watch-it-work-section" id="watch-it-work">
     <div class="container">
       <div style="text-align:center;">
-        <span class="section-meta-tag">Interactive Broadcast Studio</span>
-        <h2 class="section-heading">Watch DenAlerts in Action</h2>
+        <span class="section-meta-tag">Interactive Preview Studio</span>
+        <h2 class="section-heading">Test Live Overlay Alerts &amp; Voice TTS</h2>
         <p class="section-description">
-          Click any simulated donation in the live feed or customize amounts to experience real-time 1080p 60fps overlay alerts with sound chimes and Indian voice speech synthesis.
+          Preview how incoming superchats look and sound on your broadcast. Select any preset test scenario or enter your own custom message to test audio chimes and Indian voice speech synthesis.
         </p>
       </div>
 
@@ -385,7 +369,7 @@
               </div>
 
               <div class="donor-info-row">
-                <div class="donor-display-name" id="display-donor">Arjun Sharma</div>
+                <div class="donor-display-name" id="display-donor">Aakash Verma</div>
                 <div class="donor-display-amount" id="display-amount">₹500</div>
               </div>
 
@@ -400,15 +384,15 @@
             </div>
           </div>
 
-          <!-- Compact Custom Controls -->
+          <!-- Custom Test Controls -->
           <div class="simulator-controls" style="padding:20px; border-top:1px solid rgba(255,255,255,0.08);">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
               <div class="sim-field" style="margin-bottom:0;">
-                <label>Donor Name</label>
-                <input type="text" id="sim-donor" class="sim-input" value="Arjun Sharma">
+                <label>Test Donor Name</label>
+                <input type="text" id="sim-donor" class="sim-input" value="Aakash Verma">
               </div>
               <div class="sim-field" style="margin-bottom:0;">
-                <label>Payment Source App</label>
+                <label>Source UPI App</label>
                 <select id="sim-app" class="sim-input">
                   <option value="Google Pay">Google Pay (GPay)</option>
                   <option value="PhonePe">PhonePe UPI</option>
@@ -431,7 +415,7 @@
             </div>
 
             <div class="sim-field" style="margin-bottom:14px;">
-              <label>Donor Superchat Message</label>
+              <label>Test Donor Message</label>
               <input type="text" id="sim-note" class="sim-input" value="Clutch 1v4 god level gameplay bhai! 🔥">
             </div>
 
@@ -444,19 +428,19 @@
           </div>
         </div>
 
-        <!-- Recent Events Feed (Right) -->
+        <!-- Presets Column (Right) -->
         <div class="live-feed-column">
           <div class="feed-header">
             <div class="feed-header-title">
               <span class="feed-pulse-indicator"></span>
-              <span>Recent Superchat Events</span>
+              <span>Test Preset Scenarios</span>
             </div>
-            <span style="font-size:11px; color:var(--text-tertiary); font-weight:600;">TAP TO TEST</span>
+            <span style="font-size:11px; color:var(--text-tertiary); font-weight:600;">CLICK TO TEST</span>
           </div>
 
           <div class="feed-events-list">
-            <!-- Event 1 -->
-            <div class="event-feed-card active" data-donor="Arjun Sharma" data-amt="500" data-app="Google Pay" data-msg="Clutch 1v4 god level gameplay bhai! 🔥">
+            <!-- Preset 1 -->
+            <div class="event-feed-card active" data-donor="Aakash Verma" data-amt="500" data-app="Google Pay" data-msg="Clutch 1v4 god level gameplay bhai! 🔥">
               <div class="event-app-icon" style="background:#131722; border:1px solid rgba(255,255,255,0.1);">
                 <svg viewBox="0 0 24 24" width="20" height="20">
                   <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-9z"/>
@@ -467,15 +451,15 @@
               </div>
               <div class="event-meta">
                 <div class="event-donor-row">
-                  <span class="event-donor-name">Arjun Sharma</span>
+                  <span class="event-donor-name">Aakash Verma</span>
                   <span class="event-amount-tag">₹500</span>
                 </div>
                 <div class="event-sub-line">via Google Pay • "Clutch 1v4 god level gameplay bhai! 🔥"</div>
               </div>
             </div>
 
-            <!-- Event 2 -->
-            <div class="event-feed-card" data-donor="Priya Patel" data-amt="200" data-app="PhonePe" data-msg="Chai & snack break fund! Keep grinding">
+            <!-- Preset 2 -->
+            <div class="event-feed-card" data-donor="Kunal Shah" data-amt="200" data-app="PhonePe" data-msg="Chai & snack break fund! Keep grinding">
               <div class="event-app-icon" style="background:#5f259f;">
                 <svg viewBox="0 0 32 32" width="20" height="20">
                   <path d="M8 10h16" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
@@ -486,43 +470,43 @@
               </div>
               <div class="event-meta">
                 <div class="event-donor-row">
-                  <span class="event-donor-name">Priya Patel</span>
+                  <span class="event-donor-name">Kunal Shah</span>
                   <span class="event-amount-tag">₹200</span>
                 </div>
                 <div class="event-sub-line">via PhonePe • "Chai & snack break fund! Keep grinding"</div>
               </div>
             </div>
 
-            <!-- Event 3 -->
-            <div class="event-feed-card" data-donor="Rahul Verma" data-amt="1000" data-app="Paytm" data-msg="Big fan from Delhi squad! Best streamer ❤️">
+            <!-- Preset 3 -->
+            <div class="event-feed-card" data-donor="Rohan Mehta" data-amt="1000" data-app="Paytm" data-msg="Big fan from Delhi! Best streamer ❤️">
               <div class="event-app-icon" style="background:#002970;">
                 <span style="font-size:11px; font-weight:900; color:#00baf2; letter-spacing:-0.5px;">Paytm</span>
               </div>
               <div class="event-meta">
                 <div class="event-donor-row">
-                  <span class="event-donor-name">Rahul Verma</span>
+                  <span class="event-donor-name">Rohan Mehta</span>
                   <span class="event-amount-tag">₹1,000</span>
                 </div>
-                <div class="event-sub-line">via Paytm • "Big fan from Delhi squad! Best streamer ❤️"</div>
+                <div class="event-sub-line">via Paytm • "Big fan from Delhi! Best streamer ❤️"</div>
               </div>
             </div>
 
-            <!-- Event 4 -->
-            <div class="event-feed-card" data-donor="Sneha Gupta" data-amt="150" data-app="BHIM" data-msg="GG wp! Winner winner chicken dinner 🍗">
+            <!-- Preset 4 -->
+            <div class="event-feed-card" data-donor="Aditi Rao" data-amt="150" data-app="BHIM" data-msg="GG wp! Winner winner chicken dinner 🍗">
               <div class="event-app-icon" style="background:#111625; border:1px solid rgba(255,255,255,0.1);">
                 <span style="font-size:10px; font-weight:800; color:#00A859;">BHIM</span>
               </div>
               <div class="event-meta">
                 <div class="event-donor-row">
-                  <span class="event-donor-name">Sneha Gupta</span>
+                  <span class="event-donor-name">Aditi Rao</span>
                   <span class="event-amount-tag">₹150</span>
                 </div>
                 <div class="event-sub-line">via BHIM UPI • "GG wp! Winner winner chicken dinner 🍗"</div>
               </div>
             </div>
 
-            <!-- Event 5 -->
-            <div class="event-feed-card" data-donor="Vikram Singh" data-amt="300" data-app="Google Pay" data-msg="Next match custom room challenge?">
+            <!-- Preset 5 -->
+            <div class="event-feed-card" data-donor="Manish Kumar" data-amt="50" data-app="Google Pay" data-msg="OP clutch round bhai">
               <div class="event-app-icon" style="background:#131722; border:1px solid rgba(255,255,255,0.1);">
                 <svg viewBox="0 0 24 24" width="20" height="20">
                   <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-9z"/>
@@ -533,10 +517,10 @@
               </div>
               <div class="event-meta">
                 <div class="event-donor-row">
-                  <span class="event-donor-name">Vikram Singh</span>
-                  <span class="event-amount-tag">₹300</span>
+                  <span class="event-donor-name">Manish Kumar</span>
+                  <span class="event-amount-tag">₹50</span>
                 </div>
-                <div class="event-sub-line">via GPay • "Next match custom room challenge?"</div>
+                <div class="event-sub-line">via GPay • "OP clutch round bhai"</div>
               </div>
             </div>
           </div>
@@ -608,67 +592,6 @@
     </div>
   </section>
 
-  <!-- 3-Step Setup Architecture -->
-  <section class="architecture-section" id="how-it-works">
-    <div class="container">
-      <div style="text-align:center;">
-        <span class="section-meta-tag">Simple Setup</span>
-        <h2 class="section-heading">How DenAlerts Works in 3 Steps</h2>
-        <p class="section-description">
-          A peer-to-peer relay designed specifically for streamers. No intermediate wallets, zero payout delays, and 100% private.
-        </p>
-      </div>
-
-      <div class="arch-cards-grid">
-        <!-- Step 1 -->
-        <div class="arch-card">
-          <span class="arch-card-number">STEP 01</span>
-          <div class="arch-card-icon">
-            <svg viewBox="0 0 24 24">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-              <line x1="8" y1="21" x2="16" y2="21"/>
-              <line x1="12" y1="17" x2="12" y2="21"/>
-            </svg>
-          </div>
-          <h3>Add Browser Source to OBS</h3>
-          <p>
-            Copy your unique transparent browser source overlay URL directly into OBS Studio, Streamlabs, or vMix. The canvas remains completely invisible until an alert arrives.
-          </p>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="arch-card">
-          <span class="arch-card-number">STEP 02</span>
-          <div class="arch-card-icon">
-            <svg viewBox="0 0 24 24">
-              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-              <line x1="12" y1="18" x2="12.01" y2="18"/>
-            </svg>
-          </div>
-          <h3>Pair Companion Android App</h3>
-          <p>
-            Download the <strong>DenAlerts Android APK</strong> on your phone. Enter your 6-digit PIN and toggle <strong>Live Stream Mode</strong> when you start streaming.
-          </p>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="arch-card">
-          <span class="arch-card-number">STEP 03</span>
-          <div class="arch-card-icon">
-            <svg viewBox="0 0 24 24">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-          </div>
-          <h3>Instant Hype &amp; Voice TTS</h3>
-          <p>
-            When a viewer scans your personal UPI QR code, the transaction is recognized in under 200ms and pops up on stream with speech synthesis and animations.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- Bento Features Section -->
   <section class="features-bento-section" id="features">
     <div class="container">
@@ -735,7 +658,7 @@
         <span class="section-meta-tag">Comparison</span>
         <h2 class="section-heading">DenAlerts vs YouTube &amp; Gateways</h2>
         <p class="section-description">
-          Compare the numbers: see why top Indian gaming creators switch to direct UPI overlays.
+          Compare the numbers: see why Indian gaming creators switch to direct UPI overlays.
         </p>
       </div>
 
@@ -786,85 +709,60 @@
     </div>
   </section>
 
-  <!-- Streamers Across India Section -->
-  <section class="creators-community-section" id="streamers">
+  <!-- Core Platform Guarantees Section (Truthful, No Fabricated Metrics) -->
+  <section class="guarantees-section" id="guarantees">
     <div class="container">
       <div style="text-align:center;">
-        <span class="section-meta-tag">Creator Community</span>
-        <h2 class="section-heading">Trusted by Streamers Across India</h2>
+        <span class="section-meta-tag">Creator Guarantees</span>
+        <h2 class="section-heading">Built for Creators, Governed by UPI</h2>
         <p class="section-description">
-          Indian esports creators, casual gamers, and live broadcasters turning UPI tips into live broadcast moments with zero revenue deduction.
+          Transparent, peer-to-peer, and zero middleman delay. Here is how DenAlerts protects your revenue.
         </p>
       </div>
 
-      <!-- Metrics Strip -->
-      <div class="metrics-strip">
-        <div class="metric-box">
-          <div class="metric-num gradient-cyan">₹2.4 Cr+</div>
-          <div class="metric-label">0% Fee Superchats Delivered</div>
-        </div>
-        <div class="metric-box">
-          <div class="metric-num gradient-emerald">18,500+</div>
-          <div class="metric-label">Live Broadcasts Powered</div>
-        </div>
-        <div class="metric-box">
-          <div class="metric-num">&lt; 180ms</div>
-          <div class="metric-label">Edge Notification Latency</div>
-        </div>
-        <div class="metric-box">
-          <div class="metric-num" style="color:var(--accent-emerald);">0%</div>
-          <div class="metric-label">Platform Cut Forever</div>
-        </div>
-      </div>
-
-      <!-- Testimonials Grid -->
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <p class="testimonial-quote">
-            "I saved over ₹16,000 in my first month compared to YouTube superchats. The money lands directly in my SBI account within 2 seconds of the viewer scanning my QR code on stream."
-          </p>
-          <div class="streamer-author-row">
-            <div class="streamer-avatar">AR</div>
-            <div>
-              <div class="streamer-info-name">
-                <span>Rohit "ApexRogue"</span>
-                <svg class="streamer-verified-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              </div>
-              <div class="streamer-game-tag">BGMI Streamer • Mumbai</div>
-            </div>
+      <div class="guarantees-grid">
+        <!-- Guarantee 1 -->
+        <div class="guarantee-card">
+          <div class="guarantee-icon-box">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
+          <h3>0% Platform Commission</h3>
+          <p>
+            Every single rupee paid by your viewers moves directly into your personal bank account. DenAlerts has no wallet, no payout schedule, and takes zero transaction fees.
+          </p>
         </div>
 
-        <div class="testimonial-card">
-          <p class="testimonial-quote">
-            "The Indian English TTS engine is super crisp and understands desi slang and donor names with zero distortion. My chat loves triggering voice messages when they send GPay tips."
-          </p>
-          <div class="streamer-author-row">
-            <div class="streamer-avatar" style="background:linear-gradient(135deg, #10b981, #06b6d4);">VK</div>
-            <div>
-              <div class="streamer-info-name">
-                <span>Kavya "Valkyrie"</span>
-                <svg class="streamer-verified-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              </div>
-              <div class="streamer-game-tag">Valorant Creator • Bengaluru</div>
-            </div>
+        <!-- Guarantee 2 -->
+        <div class="guarantee-card">
+          <div class="guarantee-icon-box">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           </div>
+          <h3>Zero Business Paperwork / GST</h3>
+          <p>
+            Operates with standard savings bank accounts and personal UPI VPAs (GPay, PhonePe, BHIM). You don't need a merchant account, GST registration, or tax filings to begin.
+          </p>
         </div>
 
-        <div class="testimonial-card">
-          <p class="testimonial-quote">
-            "Setting up took literally 2 minutes. Added browser source in OBS, linked the companion Android app with the 6-digit PIN, and went live. Flawless zero-delay performance."
-          </p>
-          <div class="streamer-author-row">
-            <div class="streamer-avatar" style="background:linear-gradient(135deg, #f59e0b, #ef4444);">DW</div>
-            <div>
-              <div class="streamer-info-name">
-                <span>Devendra "DarkWolf"</span>
-                <svg class="streamer-verified-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              </div>
-              <div class="streamer-game-tag">GTA V RP Broadcaster • Delhi</div>
-            </div>
+        <!-- Guarantee 3 -->
+        <div class="guarantee-card">
+          <div class="guarantee-icon-box">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
+          <h3>Instant Direct P2P Settlement</h3>
+          <p>
+            Transactions settle across the official NPCI UPI network in seconds. You never have to wait 7 to 30 days for weekly payout batches or submit manual withdrawal requests.
+          </p>
+        </div>
+
+        <!-- Guarantee 4 -->
+        <div class="guarantee-card">
+          <div class="guarantee-icon-box">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>Off-Stream Privacy Switch</h3>
+          <p>
+            The companion Android app features an explicit <strong>Live Stream Mode</strong> toggle. When toggled off, it completely ignores all phone notifications, ensuring personal transactions never leak.
+          </p>
         </div>
       </div>
     </div>
@@ -1010,7 +908,7 @@
             <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="faq-answer">
-            Traditional platforms sit in the middle of transactions, hold funds in an escrow wallet, and deduct 5% to 30%. DenAlerts is a direct notification bridge: your viewers scan your personal UPI QR code directly. The money moves peer-to-peer into your personal bank account, and our lightweight companion app detects the transaction to fire the alert on OBS.
+            Traditional platforms sit in the middle of transactions, hold funds in an escrow wallet, and deduct 5% to 30%. DenAlerts is a direct notification bridge: your viewers scan your personal UPI QR code directly. The money moves peer-to-peer into your personal bank account, and our companion app detects the transaction to fire the alert on OBS.
           </div>
         </div>
 
@@ -1073,7 +971,7 @@
           </p>
           <div class="footer-edge-status">
             <span class="status-dot-blink"></span>
-            <span>Cloudflare Edge Active • Mumbai &amp; Chennai</span>
+            <span>WebSocket Relay Active • Ultra-Low Latency</span>
           </div>
         </div>
 
@@ -1091,7 +989,7 @@
                 <span class="discord-tag">#upi-alerts</span>
               </a>
             </li>
-            <li><a href="#how-it-works">Architecture</a></li>
+            <li><a href="#architecture">Architecture</a></li>
             <li><a href="#pricing">Pricing Plans</a></li>
           </ul>
         </div>
@@ -1134,7 +1032,7 @@
     </div>
   </footer>
 
-  <!-- Interactive Studio & Feed Scripts -->
+  <!-- Interactive Studio & Presets Scripts -->
   <script>
     // Simulator controls
     const simDonor = document.getElementById('sim-donor');
@@ -1215,13 +1113,13 @@
 
     // Custom test button
     btnTrigger.addEventListener('click', () => {
-      const donor = simDonor.value.trim() || 'Arjun Sharma';
+      const donor = simDonor.value.trim() || 'Aakash Verma';
       const note = simNote.value.trim() || 'Clutch 1v4 god level gameplay bhai! 🔥';
       const app = simApp.value;
       triggerAlert(donor, selectedAmount, app, note);
     });
 
-    // Recent Feed items click handling
+    // Preset cards click handling
     const feedCards = document.querySelectorAll('.event-feed-card');
     feedCards.forEach(card => {
       card.addEventListener('click', () => {

@@ -719,6 +719,16 @@
     });
   }
 
+  // Auto-save Goal Settings on edit
+  [inputGoalTitle, inputGoalTarget, inputGoalCurrent].forEach(el => {
+    if (el) {
+      el.addEventListener('change', () => {
+        saveSettings();
+        showGoalStatus('Stream Goal updated & synced with OBS!');
+      });
+    }
+  });
+
   if (checkGoalEnabled) {
     checkGoalEnabled.addEventListener('change', () => {
       saveSettings();

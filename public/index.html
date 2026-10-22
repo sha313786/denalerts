@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/landing.css?v=39">
+  <link rel="stylesheet" href="/landing.css?v=40">
 </head>
 <body>
 
@@ -327,12 +327,12 @@
         <span class="section-meta-tag">Interactive Preview Studio</span>
         <h2 class="section-heading">Test Live Overlay Alerts &amp; Voice TTS</h2>
         <p class="section-description">
-          Preview how incoming superchats look and sound on your broadcast. Select any preset test scenario or enter your own custom message to test audio chimes and Indian voice speech synthesis.
+          Preview how incoming superchats look and sound on your broadcast. Enter any custom donor name, UPI app, amount, and message below to trigger real-time sound chimes and Indian synthetic speech.
         </p>
       </div>
 
       <div class="watch-stage-grid">
-        <!-- Broadcast Monitor (Left) -->
+        <!-- Broadcast Monitor -->
         <div class="live-monitor-box">
           <div class="monitor-topbar">
             <div class="monitor-status-badges">
@@ -386,8 +386,8 @@
           </div>
 
           <!-- Custom Test Controls -->
-          <div class="simulator-controls" style="padding:20px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="simulator-controls" style="padding:24px 28px; border-top:1px solid rgba(255,255,255,0.08);">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
               <div class="sim-field" style="margin-bottom:0;">
                 <label>Test Donor Name</label>
                 <input type="text" id="sim-donor" class="sim-input" value="Aakash Verma">
@@ -403,7 +403,7 @@
               </div>
             </div>
 
-            <div class="sim-field" style="margin-bottom:12px;">
+            <div class="sim-field" style="margin-bottom:14px;">
               <label>Donation Amount (INR)</label>
               <div class="amount-chips">
                 <button type="button" class="amount-chip" data-amt="50">₹50</button>
@@ -415,7 +415,7 @@
               </div>
             </div>
 
-            <div class="sim-field" style="margin-bottom:14px;">
+            <div class="sim-field" style="margin-bottom:16px;">
               <label>Test Donor Message</label>
               <input type="text" id="sim-note" class="sim-input" value="Clutch 1v4 god level gameplay bhai! 🔥">
             </div>
@@ -426,104 +426,6 @@
               </svg>
               <span>Fire Live Alert &amp; Speak TTS</span>
             </button>
-          </div>
-        </div>
-
-        <!-- Presets Column (Right) -->
-        <div class="live-feed-column">
-          <div class="feed-header">
-            <div class="feed-header-title">
-              <span class="feed-pulse-indicator"></span>
-              <span>Test Preset Scenarios</span>
-            </div>
-            <span style="font-size:11px; color:var(--text-tertiary); font-weight:600;">CLICK TO TEST</span>
-          </div>
-
-          <div class="feed-events-list">
-            <!-- Preset 1 -->
-            <div class="event-feed-card active" data-donor="Aakash Verma" data-amt="500" data-app="Google Pay" data-msg="Clutch 1v4 god level gameplay bhai! 🔥">
-              <div class="event-app-icon" style="background:#131722; border:1px solid rgba(255,255,255,0.1);">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-9z"/>
-                  <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-3l-3.9-3c-1.1.7-2.5 1.2-4 1.2-3.1 0-5.7-2.1-6.7-4.9H1.3v3.1C3.3 21.4 7.4 24 12 24z"/>
-                  <path fill="#FBBC05" d="M5.3 14.3c-.3-.8-.4-1.6-.4-2.3s.1-1.5.4-2.3V6.6H1.3C.5 8.2 0 10 0 12s.5 3.8 1.3 5.4l4-3.1z"/>
-                  <path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.5-3.5C18 1.2 15.2 0 12 0 7.4 0 3.3 2.6 1.3 6.6l4 3.1c1-2.8 3.6-4.9 6.7-4.9z"/>
-                </svg>
-              </div>
-              <div class="event-meta">
-                <div class="event-donor-row">
-                  <span class="event-donor-name">Aakash Verma</span>
-                  <span class="event-amount-tag">₹500</span>
-                </div>
-                <div class="event-sub-line">via Google Pay • "Clutch 1v4 god level gameplay bhai! 🔥"</div>
-              </div>
-            </div>
-
-            <!-- Preset 2 -->
-            <div class="event-feed-card" data-donor="Kunal Shah" data-amt="200" data-app="PhonePe" data-msg="Chai & snack break fund! Keep grinding">
-              <div class="event-app-icon" style="background:#5f259f;">
-                <svg viewBox="0 0 32 32" width="20" height="20">
-                  <path d="M8 10h16" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M14 10l-4.5-4" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
-                  <path d="M11.5 10v6c0 2 1.5 3.5 3.5 3.5h3" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                  <path d="M18 10v14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="event-meta">
-                <div class="event-donor-row">
-                  <span class="event-donor-name">Kunal Shah</span>
-                  <span class="event-amount-tag">₹200</span>
-                </div>
-                <div class="event-sub-line">via PhonePe • "Chai & snack break fund! Keep grinding"</div>
-              </div>
-            </div>
-
-            <!-- Preset 3 -->
-            <div class="event-feed-card" data-donor="Rohan Mehta" data-amt="1000" data-app="Paytm" data-msg="Big fan from Delhi! Best streamer ❤️">
-              <div class="event-app-icon" style="background:#002970;">
-                <span style="font-size:11px; font-weight:900; color:#00baf2; letter-spacing:-0.5px;">Paytm</span>
-              </div>
-              <div class="event-meta">
-                <div class="event-donor-row">
-                  <span class="event-donor-name">Rohan Mehta</span>
-                  <span class="event-amount-tag">₹1,000</span>
-                </div>
-                <div class="event-sub-line">via Paytm • "Big fan from Delhi! Best streamer ❤️"</div>
-              </div>
-            </div>
-
-            <!-- Preset 4 -->
-            <div class="event-feed-card" data-donor="Aditi Rao" data-amt="150" data-app="BHIM" data-msg="GG wp! Winner winner chicken dinner 🍗">
-              <div class="event-app-icon" style="background:#111625; border:1px solid rgba(255,255,255,0.1);">
-                <span style="font-size:10px; font-weight:800; color:#00A859;">BHIM</span>
-              </div>
-              <div class="event-meta">
-                <div class="event-donor-row">
-                  <span class="event-donor-name">Aditi Rao</span>
-                  <span class="event-amount-tag">₹150</span>
-                </div>
-                <div class="event-sub-line">via BHIM UPI • "GG wp! Winner winner chicken dinner 🍗"</div>
-              </div>
-            </div>
-
-            <!-- Preset 5 -->
-            <div class="event-feed-card" data-donor="Manish Kumar" data-amt="50" data-app="Google Pay" data-msg="OP clutch round bhai">
-              <div class="event-app-icon" style="background:#131722; border:1px solid rgba(255,255,255,0.1);">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-9z"/>
-                  <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-3l-3.9-3c-1.1.7-2.5 1.2-4 1.2-3.1 0-5.7-2.1-6.7-4.9H1.3v3.1C3.3 21.4 7.4 24 12 24z"/>
-                  <path fill="#FBBC05" d="M5.3 14.3c-.3-.8-.4-1.6-.4-2.3s.1-1.5.4-2.3V6.6H1.3C.5 8.2 0 10 0 12s.5 3.8 1.3 5.4l4-3.1z"/>
-                  <path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.5-3.5C18 1.2 15.2 0 12 0 7.4 0 3.3 2.6 1.3 6.6l4 3.1c1-2.8 3.6-4.9 6.7-4.9z"/>
-                </svg>
-              </div>
-              <div class="event-meta">
-                <div class="event-donor-row">
-                  <span class="event-donor-name">Manish Kumar</span>
-                  <span class="event-amount-tag">₹50</span>
-                </div>
-                <div class="event-sub-line">via GPay • "OP clutch round bhai"</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1306,35 +1208,6 @@
       const note = simNote.value.trim() || 'Clutch 1v4 god level gameplay bhai! 🔥';
       const app = simApp.value;
       triggerAlert(donor, selectedAmount, app, note);
-    });
-
-    // Preset cards click handling
-    const feedCards = document.querySelectorAll('.event-feed-card');
-    feedCards.forEach(card => {
-      card.addEventListener('click', () => {
-        feedCards.forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-
-        const donor = card.getAttribute('data-donor');
-        const amt = card.getAttribute('data-amt');
-        const app = card.getAttribute('data-app');
-        const msg = card.getAttribute('data-msg');
-
-        // Update form controls to reflect selection
-        simDonor.value = donor;
-        simNote.value = msg;
-        selectedAmount = amt;
-        
-        amountChips.forEach(c => {
-          if (c.getAttribute('data-amt') === amt) {
-            c.classList.add('active');
-          } else {
-            c.classList.remove('active');
-          }
-        });
-
-        triggerAlert(donor, amt, app, msg);
-      });
     });
 
     // FAQ Accordion

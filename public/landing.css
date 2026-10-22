@@ -790,15 +790,12 @@ p {
 }
 
 /* ==========================================================================
-   Watch Stage Grid & Live Feed Scenarios Column (Simulator)
+   Watch Stage Grid (Live Monitor & Interactive Studio)
    ========================================================================== */
 
 .watch-stage-grid {
-  display: grid;
-  grid-template-columns: 1fr 390px;
-  gap: 24px;
-  align-items: stretch;
-  margin-top: 36px;
+  max-width: 860px;
+  margin: 36px auto 0;
 }
 
 .live-monitor-box {
@@ -878,131 +875,6 @@ p {
 .btn-icon-toggle:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
-}
-
-/* Preset Scenarios Column (Right) */
-.live-feed-column {
-  background: rgba(10, 14, 26, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-}
-
-.feed-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 14px;
-}
-
-.feed-header-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.feed-pulse-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #00f0ff;
-  box-shadow: 0 0 10px #00f0ff;
-  animation: pulse-cyan 1.5s infinite;
-}
-
-@keyframes pulse-cyan {
-  0% { transform: scale(0.9); opacity: 0.8; }
-  50% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.8; }
-}
-
-.feed-events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
-.event-feed-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  text-align: left;
-  user-select: none;
-}
-
-.event-feed-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(0, 240, 255, 0.3);
-  transform: translateX(3px);
-}
-
-.event-feed-card.active {
-  background: rgba(0, 240, 255, 0.08);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 4px 18px rgba(0, 240, 255, 0.15);
-}
-
-.event-app-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.event-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.event-donor-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.event-donor-name {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.event-amount-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--accent-emerald);
-  flex-shrink: 0;
-}
-
-.event-sub-line {
-  font-size: 11.5px;
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ==========================================================================

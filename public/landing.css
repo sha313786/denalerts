@@ -2443,58 +2443,163 @@ p {
 }
 
 /* ==========================================================================
-   Modern 4-Column Footer Styles (Image 6 Reference)
+   Reference-Matched 3-Column Footer Styles (DonatorApp Reference from Screenshot)
    ========================================================================== */
 
-.footer-grid-modern {
+.site-footer {
+  background: #060913;
+  padding: 60px 0 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.footer-ref-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.2fr;
-  gap: 40px;
-  padding-bottom: 50px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 50px;
+  padding-bottom: 40px;
 }
 
-.footer-nav-item a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 13.5px;
-  transition: all 0.2s ease;
-  padding: 3px 0;
-}
-
-.footer-nav-item a:hover {
-  color: var(--accent-cyan);
-  transform: translateX(3px);
-}
-
-.footer-arrow {
-  color: #ec4899;
+.footer-brand-title {
+  font-size: 32px;
   font-weight: 800;
-  font-size: 12px;
+  color: #e11d48;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
 }
 
-.footer-contact-box {
+.footer-brand-text {
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: #94a3b8;
+}
+
+.footer-col-header {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e11d48;
+  margin-bottom: 14px;
+}
+
+.footer-ref-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-ref-links li {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 0;
+}
+
+.footer-ref-links li:last-child {
+  border-bottom: none;
+}
+
+.footer-ref-links a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.footer-ref-links a:hover {
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+.footer-ref-arrow {
+  color: #e11d48;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.footer-ref-contact {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  font-size: 13.5px;
-  color: var(--text-secondary);
+  gap: 12px;
+  font-size: 14px;
+  color: #cbd5e1;
+  line-height: 1.6;
 }
 
-.footer-contact-item {
+.footer-email-reveal-wrap {
+  display: inline-block;
+  color: #cbd5e1;
+}
+
+.footer-email-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-email-link:hover {
+  color: #e11d48;
+}
+
+.footer-dev-address {
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.footer-social-row {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
 }
 
-.footer-contact-item strong {
-  color: #fff;
+.footer-social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-/* ==========================================================================
+.footer-social-btn:hover {
+  background: #e11d48;
+  border-color: #e11d48;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.footer-ref-bottom {
+  text-align: center;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.8;
+}
+
+.footer-ref-bottom strong {
+  color: #ffffff;
+}
+
+.footer-ref-bottom a {
+  color: #e11d48;
+  text-decoration: none;
+}
+
+.footer-ref-bottom a:hover {
+  text-decoration: underline;
+}
 
 /* ==========================================================================
    Responsive Breakpoints
@@ -2526,7 +2631,7 @@ p {
   .about-grid { grid-template-columns: 1fr; }
   .support-cards-grid { grid-template-columns: 1fr; }
   .setup-steps-bar { grid-template-columns: repeat(2, 1fr); }
-  .footer-grid-modern { grid-template-columns: 1fr 1fr; gap: 30px; }
+  .footer-ref-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
 }
 
@@ -2539,7 +2644,7 @@ p {
   .hero-subhead { font-size: 16px; }
   .toolkit-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
-  .footer-grid-modern { grid-template-columns: 1fr; gap: 30px; }
+  .footer-ref-grid { grid-template-columns: 1fr; gap: 30px; }
   .setup-steps-bar { grid-template-columns: 1fr; }
   .setup-video-hero { aspect-ratio: auto; min-height: 240px; }
   .simulator-stage { padding: 24px 16px; }

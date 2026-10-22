@@ -264,18 +264,20 @@
               </div>
 
               <!-- Upload Sound File -->
-              <div style="display:flex; gap:8px; align-items:center;">
-                <label for="input-custom-sound-file" class="btn btn-secondary btn-sm" style="flex:1; cursor:pointer; text-align:center;">
+              <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <label for="input-custom-sound-file" class="btn btn-secondary btn-sm" style="flex:1 1 180px; cursor:pointer; text-align:center;">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                   <span>Upload Audio File (MP3/WAV)</span>
                   <input type="file" id="input-custom-sound-file" accept="audio/*" style="display:none;">
                 </label>
-                <button type="button" id="btn-play-sound-preview" class="btn btn-secondary btn-sm" title="Test Play Current Sound">
-                  <span>▶️ Preview Sound</span>
-                </button>
-                <button type="button" id="btn-reset-sound" class="btn btn-secondary btn-sm" title="Reset Sound to Default Chime" style="color:#ef4444;">
-                  <span>Reset</span>
-                </button>
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                  <button type="button" id="btn-play-sound-preview" class="btn btn-secondary btn-sm" title="Test Play Current Sound">
+                    <span>▶️ Preview Sound</span>
+                  </button>
+                  <button type="button" id="btn-reset-sound" class="btn btn-secondary btn-sm" title="Reset Sound to Default Chime" style="color:#ef4444;">
+                    <span>Reset</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -299,13 +301,13 @@
               </div>
 
               <!-- Upload Visual Meme or Video File -->
-              <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-                <label for="input-custom-visual-file" class="btn btn-secondary btn-sm" style="flex:1; cursor:pointer; text-align:center;">
+              <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;">
+                <label for="input-custom-visual-file" class="btn btn-secondary btn-sm" style="flex:1 1 180px; cursor:pointer; text-align:center;">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                   <span>Upload Meme File (GIF, MP4, WebM, PNG)</span>
                   <input type="file" id="input-custom-visual-file" accept="image/gif,image/png,image/jpeg,image/webp,video/mp4,video/webm" style="display:none;">
                 </label>
-                <button type="button" id="btn-reset-visual" class="btn btn-secondary btn-sm" title="Remove Visual Meme" style="color:#ef4444;">
+                <button type="button" id="btn-reset-visual" class="btn btn-secondary btn-sm" title="Remove Visual Meme" style="color:#ef4444; flex-shrink:0;">
                   <span>Remove Visual</span>
                 </button>
               </div>
@@ -660,9 +662,9 @@
             </div>
 
             <!-- Goal Style / Theme Selector -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px; margin-bottom:2px;">
-              <label for="select-goal-theme" style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">Widget Style / Theme:</label>
-              <select id="select-goal-theme" style="padding:4px 8px; background:#080c14; border:1px solid rgba(0,240,255,0.25); border-radius:6px; color:#38bdf8; font-size:11.5px; font-weight:700; cursor:pointer;">
+            <div style="display:flex; flex-direction:column; gap:5px; margin-top:4px; margin-bottom:6px;">
+              <label for="select-goal-theme" style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Widget Style / Theme:</label>
+              <select id="select-goal-theme" style="width:100%; padding:8px 10px; background:#080c14; border:1px solid rgba(0,240,255,0.25); border-radius:6px; color:#38bdf8; font-size:12px; font-weight:700; cursor:pointer;">
                 <option value="default" selected>🗂️ Cyber Studio Card (Boxed Card)</option>
                 <option value="simple">✨ Minimal Streamer (Clean Transparent Bar)</option>
                 <option value="capsule">💊 Compact Pill Capsule</option>
@@ -672,44 +674,45 @@
             </div>
 
             <!-- OBS Browser Source URL -->
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-              <label style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase;">OBS Browser Source URL (Goal Widget):</label>
-              <div style="display:flex; gap:6px;">
-                <input type="text" id="input-goal-url" readonly class="input-field" value="..." style="font-size:11.5px; font-family:'JetBrains Mono',monospace; flex:1; padding:7px 10px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#38bdf8;">
-                <button type="button" id="btn-copy-goal-url" class="btn btn-secondary btn-sm" title="Copy OBS Browser Source URL">
+            <div style="display:flex; flex-direction:column; gap:5px; margin-top:4px;">
+              <label style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">OBS Browser Source URL (Goal Widget):</label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="text" id="input-goal-url" readonly class="input-field" value="..." style="font-size:11.5px; font-family:'JetBrains Mono',monospace; flex:1; min-width:0; padding:8px 10px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#38bdf8;">
+                <button type="button" id="btn-copy-goal-url" class="btn btn-secondary btn-sm" style="flex-shrink:0; white-space:nowrap; padding:8px 12px;" title="Copy OBS Browser Source URL">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:3px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   <span>Copy</span>
                 </button>
-                <a id="btn-preview-goal" href="/goal" target="_blank" class="btn btn-secondary btn-sm" title="Open Goal Preview in New Tab" style="text-decoration:none; display:inline-flex; align-items:center;">
+                <a id="btn-preview-goal" href="/goal" target="_blank" class="btn btn-secondary btn-sm" title="Open Goal Preview in New Tab" style="flex-shrink:0; white-space:nowrap; text-decoration:none; display:inline-flex; align-items:center; padding:8px 11px;">
                   <span>↗</span>
                 </a>
               </div>
+            </div>
 
-              <!-- Goal Settings Form Grid -->
-              <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-top:4px;">
-                <div class="form-group" style="margin:0;">
-                  <label for="input-goal-title" style="font-size:11px;">Goal Title</label>
-                  <input type="text" id="input-goal-title" class="input-field" value="Live Stream Goal" placeholder="e.g. New Streaming Mic" style="width:100%; padding:7px 10px; font-size:12px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff;">
-                </div>
-                <div class="form-group" style="margin:0;">
-                  <label for="input-goal-target" style="font-size:11px;">Target (₹)</label>
-                  <input type="number" id="input-goal-target" class="input-field" value="1000" min="1" step="50" style="width:100%; padding:7px 10px; font-size:12px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-family:'JetBrains Mono',monospace;">
-                </div>
-                <div class="form-group" style="margin:0;">
-                  <label for="input-goal-current" style="font-size:11px;">Raised (₹)</label>
-                  <input type="number" id="input-goal-current" class="input-field" value="0" min="0" step="10" style="width:100%; padding:7px 10px; font-size:12px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#38bdf8; font-family:'JetBrains Mono',monospace;">
-                </div>
+            <!-- Goal Settings Form Grid -->
+            <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:8px; margin-top:8px;">
+              <div class="form-group" style="margin:0;">
+                <label for="input-goal-title" style="font-size:11px;">Goal Title</label>
+                <input type="text" id="input-goal-title" class="input-field" value="Live Stream Goal" placeholder="e.g. New Streaming Mic" style="width:100%; padding:8px 10px; font-size:12px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff;">
               </div>
+              <div class="form-group" style="margin:0;">
+                <label for="input-goal-target" style="font-size:11px;">Target (₹)</label>
+                <input type="number" id="input-goal-target" class="input-field" value="1000" min="1" step="50" style="width:100%; padding:8px 8px; font-size:12px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-family:'JetBrains Mono',monospace;">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label for="input-goal-current" style="font-size:11px;">Raised (₹)</label>
+                <input type="number" id="input-goal-current" class="input-field" value="0" min="0" step="10" style="width:100%; padding:8px 8px; font-size:12px; background:#080c14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#38bdf8; font-family:'JetBrains Mono',monospace;">
+              </div>
+            </div>
 
-              <!-- Action Buttons -->
-              <div style="display:flex; gap:8px; margin-top:6px;">
-                <button type="button" id="btn-bump-goal" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center; font-weight:700;" title="Simulate a +₹100 donation bump">
-                  <span>⚡ Test +₹100</span>
-                </button>
-                <button type="button" id="btn-reset-goal" class="btn btn-secondary btn-sm" style="color:#ef4444; border-color:rgba(239, 68, 68, 0.3); font-weight:700;" title="Reset current progress to ₹0">
-                  <span>Reset (₹0)</span>
-                </button>
-              </div>
+            <!-- Action Buttons -->
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button type="button" id="btn-bump-goal" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 12px; white-space:nowrap;" title="Simulate a +₹100 donation bump">
+                <span>⚡ Test +₹100</span>
+              </button>
+              <button type="button" id="btn-reset-goal" class="btn btn-secondary btn-sm" style="flex-shrink:0; color:#ef4444; border-color:rgba(239, 68, 68, 0.35); font-weight:700; padding:8px 14px; white-space:nowrap;" title="Reset current progress to ₹0">
+                <span>Reset (₹0)</span>
+              </button>
+            </div>
 
               <div id="goal-status-msg" style="display:none; font-size:11.5px; padding:6px 10px; border-radius:6px;"></div>
 

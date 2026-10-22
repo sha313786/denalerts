@@ -202,48 +202,45 @@ p {
 }
 
 .brand-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #00f0ff, #6366f1);
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+  transition: all 0.25s ease;
 }
 
-.brand-icon-box::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+.brand-icon-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.45);
+  border-color: rgba(0, 240, 255, 0.6);
 }
 
+.brand-icon-box img,
 .brand-icon-box svg {
-  width: 19px;
-  height: 19px;
-  stroke: #030814;
-  fill: #030814;
-  stroke-width: 1.5;
+  width: 24px;
+  height: 24px;
 }
 
 .brand-name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 800;
   letter-spacing: -0.02em;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .brand-name span {
-  background: linear-gradient(135deg, #00f0ff, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--accent-cyan);
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
 }
 
 .brand-version-pill {

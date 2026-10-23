@@ -147,61 +147,97 @@
     return appName || 'UPI';
   }
 
+  // Helper to cleanly sanitize donor message, stripping prefixes like "Note:", "note:", "Message:", "सन्देश:", etc.
+  function cleanDonorNote(note) {
+    if (!note || typeof note !== 'string') return '';
+    let clean = note.trim();
+
+    // Strip common bank/app prefixes repeatedly
+    const prefixRegex = /^(?:for\s+)?(?:note|message|msg|remarks?)[\s:\-–—]+|^सन्देश[:\s]+|^संदेश[:\s]+|^செய்தி[:\s]+|^సందేశం[:\s]+|^ಸಂದೇಶ[:\s]+|^സന്ദേശം[:\s]+/i;
+    while (prefixRegex.test(clean)) {
+      clean = clean.replace(prefixRegex, '').trim();
+    }
+
+    // Strip standalone leading "note " or "message " or "msg " (without colon)
+    clean = clean.replace(/^(?:note|msg|message)\s+/i, '').trim();
+
+    // Strip any leading punctuation left over (like "- ", ": ", etc.)
+    clean = clean.replace(/^[\s:\-–—,.]+/, '').trim();
+
+    // Strip system/fallback placeholders so TTS and overlay don't speak useless text
+    const lower = clean.toLowerCase();
+    const placeholders = [
+      'no message provided',
+      'payment received',
+      'live upi superchat',
+      'tested live from streamer app!',
+      'tested live from streamer companion app!',
+      'tested live from streamer app',
+      'upi',
+      'payment'
+    ];
+    if (placeholders.includes(lower)) {
+      return '';
+    }
+
+    return clean;
+  }
+
   const REGIONAL_TEMPLATES = {
     'en-IN': {
       lang: 'en-IN',
       template: (amt, sender, app) => `Thank you, ${sender}! Received ${amt} rupees on ${app}.`,
-      noteTemplate: (note) => `Message: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'hi': {
       lang: 'hi',
       template: (amt, sender, app) => `धन्यवाद ${sender}! ${app} पर ${amt} रुपये प्राप्त हुए।`,
-      noteTemplate: (note) => `सन्देश: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'ta': {
       lang: 'ta',
       template: (amt, sender, app) => `நன்றி ${sender}! ${app} மூலம் ${amt} ரூபாய் பெறப்பட்டது.`,
-      noteTemplate: (note) => `செய்தி: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'te': {
       lang: 'te',
       template: (amt, sender, app) => `ధన్యవాదాలు ${sender}! ${app} ద్వారా ${amt} రూపాయలు వచ్చాయి.`,
-      noteTemplate: (note) => `సందేశం: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'kn': {
       lang: 'kn',
       template: (amt, sender, app) => `ಧನ್ಯವಾದಗಳು ${sender}! ${app} ನಲ್ಲಿ ${amt} ರೂಪಾಯಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ.`,
-      noteTemplate: (note) => `ಸಂದೇಶ: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'ml': {
       lang: 'ml',
       template: (amt, sender, app) => `നന്ദി ${sender}! ${app} വഴി ${amt} രൂപ ലഭിച്ചു.`,
-      noteTemplate: (note) => `സന്ദേശം: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'bn': {
       lang: 'bn',
       template: (amt, sender, app) => `ধন্যবাদ ${sender}! ${app} এ ${amt} টাকা গ্রহণ করা হয়েছে।`,
-      noteTemplate: (note) => `বার্তা: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'mr': {
       lang: 'mr',
       template: (amt, sender, app) => `धन्यवाद ${sender}! ${app} वर ${amt} रुपये मिळाले.`,
-      noteTemplate: (note) => `संदेश: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'gu': {
       lang: 'gu',
       template: (amt, sender, app) => `આભાર ${sender}! ${app} પર ${amt} રૂપિયા મળ્યા.`,
-      noteTemplate: (note) => `સંદેશ: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'pa': {
       lang: 'pa',
       template: (amt, sender, app) => `ਧੰਨਵਾਦ ${sender}! ${app} 'ਤੇ ${amt} ਰੁਪਏ ਪ੍ਰਾਪਤ ਹੋਏ।`,
-      noteTemplate: (note) => `ਸੁਨੇਹਾ: ${note}`
+      noteTemplate: (note) => `${note}`
     },
     'hinglish': {
       lang: 'hi',
       template: (amt, sender, app) => `Shukriya ${sender}! ${app} par ${amt} rupaye receive hue.`,
-      noteTemplate: (note) => `Message: ${note}`
+      noteTemplate: (note) => `${note}`
     }
   };
 
@@ -214,6 +250,19 @@
     custom: { pitch: 1.0, speedMul: 1.0, preservesPitch: false }
   };
 
+  // Smoothly duck chime audio so speech announcement is crystal clear
+  function duckChimeForVoice() {
+    try {
+      const vol = Math.min(1, Math.max(0, alertSettings.soundVolume !== undefined ? alertSettings.soundVolume : 0.9));
+      if (customAudioEl && !customAudioEl.paused) {
+        customAudioEl.volume = vol * 0.35;
+      }
+      if (audioEl && !audioEl.paused) {
+        audioEl.volume = vol * 0.35;
+      }
+    } catch (_) {}
+  }
+
   // Guaranteed Text-To-Speech for Stream Broadcasts (Uses HTML5 Audio MP3 stream first)
   function speakAnnouncement(amount, sender, appName, note) {
     if (!alertSettings.voiceEnabled) return;
@@ -222,9 +271,11 @@
     const langKey = alertSettings.voiceLanguage || 'en-IN';
     const config = REGIONAL_TEMPLATES[langKey] || REGIONAL_TEMPLATES['en-IN'];
 
+    // Clean donor note to guarantee it NEVER speaks the literal word "note"
+    const cleanNote = cleanDonorNote(note);
     let text = config.template(amount, cleanSender, spokenApp);
-    if (note && typeof note === 'string' && note.trim().length > 0) {
-      text += ` ${config.noteTemplate(note.trim())}`;
+    if (cleanNote) {
+      text += ` ${cleanNote}.`;
     }
 
     const personaKey = alertSettings.voicePersona || 'standard';
@@ -234,20 +285,25 @@
     const baseSpeed = parseFloat(alertSettings.voiceSpeed || 0.70) || 0.70;
     const finalSpeed = (baseSpeed * persona.speedMul).toFixed(2);
 
+    duckChimeForVoice();
+
     try {
       ttsAudioEl.pause();
       ttsAudioEl.currentTime = 0;
       ttsAudioEl.src = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(config.lang)}&speed=${finalSpeed}`;
       
-      // Apply Custom Voice Pitch & Tone Modulation (Pro)
+      const targetVolume = Math.min(1, Math.max(0, alertSettings.soundVolume !== undefined ? alertSettings.soundVolume : 0.9));
+      ttsAudioEl.volume = targetVolume;
+
+      // Apply Custom Voice Pitch & Tone Modulation (Pro) or User Chosen Speed
       if (!persona.preservesPitch || personaKey === 'custom') {
         ttsAudioEl.preservesPitch = false;
         if ('mozPreservesPitch' in ttsAudioEl) ttsAudioEl.mozPreservesPitch = false;
         if ('webkitPreservesPitch' in ttsAudioEl) ttsAudioEl.webkitPreservesPitch = false;
-        ttsAudioEl.playbackRate = finalPitch;
+        ttsAudioEl.playbackRate = Math.max(0.5, Math.min(2.0, finalPitch));
       } else {
         ttsAudioEl.preservesPitch = true;
-        ttsAudioEl.playbackRate = 1.0;
+        ttsAudioEl.playbackRate = Math.max(0.5, Math.min(2.0, parseFloat(finalSpeed) || 0.75));
       }
 
       const playPromise = ttsAudioEl.play();
@@ -267,9 +323,10 @@
     try {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = parseFloat(rate) || alertSettings.voiceSpeed || 0.70;
-      utterance.pitch = parseFloat(pitch) || 1.0;
+      utterance.rate = Math.max(0.5, Math.min(2.0, parseFloat(rate) || alertSettings.voiceSpeed || 0.75));
+      utterance.pitch = Math.max(0.5, Math.min(2.0, parseFloat(pitch) || 1.0));
       utterance.lang = lang || 'en-IN';
 
       if (!availableVoices || availableVoices.length === 0) loadVoices();
@@ -280,6 +337,18 @@
                                availableVoices.find(v => v.lang && (v.lang.includes('en-GB') || v.lang.includes('en-US')));
         if (preferredVoice) utterance.voice = preferredVoice;
       }
+
+      let timer = setInterval(() => {
+        if (!window.speechSynthesis.speaking) {
+          clearInterval(timer);
+        } else {
+          window.speechSynthesis.resume();
+        }
+      }, 5000);
+
+      utterance.onend = () => clearInterval(timer);
+      utterance.onerror = () => clearInterval(timer);
+
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn('SpeechSynthesis fallback failed:', e);
@@ -289,12 +358,14 @@
   function triggerVoiceAnnouncement(payment) {
     if (!alertSettings.voiceEnabled) return;
     const isOwnVoice = alertSettings.voicePersona === 'own_voice' && alertSettings.ownVoiceUrl;
+    const targetVolume = Math.min(1, Math.max(0, alertSettings.soundVolume !== undefined ? alertSettings.soundVolume : 0.9));
 
     if (isOwnVoice) {
       const mode = alertSettings.ownVoiceMode || 'intro';
       try {
         ownVoiceAudioEl.pause();
         ownVoiceAudioEl.currentTime = 0;
+        ownVoiceAudioEl.volume = targetVolume;
         ownVoiceAudioEl.src = alertSettings.ownVoiceUrl;
 
         if (mode === 'alert_sound' || mode === 'full') {
@@ -372,8 +443,9 @@
       amountVal.textContent = cleanNum.toLocaleString('en-IN');
       supporterName.textContent = payment.senderName || 'Anonymous Supporter';
 
-      if (payment.note && payment.note.trim().length > 0) {
-        donorMessage.textContent = `"${payment.note.trim()}"`;
+      const cleanNote = cleanDonorNote(payment.note);
+      if (cleanNote && cleanNote.length > 0) {
+        donorMessage.textContent = `"${cleanNote}"`;
         cardFooter.classList.remove('empty');
       } else {
         donorMessage.textContent = '';
@@ -410,10 +482,11 @@
       playSound();
 
       // 3. Spoken Announcement (Own Voice or Regional TTS)
+      // Delay 1100ms allows the alert chime intro to ring clearly first before speech starts
       if (payment.shouldSpeak !== false) {
         setTimeout(() => {
-          triggerVoiceAnnouncement(payment);
-        }, 700);
+          triggerVoiceAnnouncement({ ...payment, note: cleanNote });
+        }, 1100);
       }
 
       // 4. Trigger Animations
@@ -428,9 +501,10 @@
       console.error('Error rendering alert card:', err);
     }
 
-    // 5. Auto dismiss after alert finishes
+    // 5. Auto dismiss after alert finishes (longer if a message is being spoken)
     const isOwnVoiceActive = alertSettings.voicePersona === 'own_voice' && alertSettings.ownVoiceUrl;
-    const DISPLAY_DURATION_MS = isOwnVoiceActive ? 8500 : 6500;
+    const hasLongMessage = payment.note && String(payment.note).trim().length > 25;
+    const DISPLAY_DURATION_MS = isOwnVoiceActive ? 9000 : (hasLongMessage ? 8000 : 6500);
 
     setTimeout(() => {
       alertCard.classList.remove('enter');

@@ -1201,17 +1201,65 @@
           audio.preservesPitch = false;
           if ('mozPreservesPitch' in audio) audio.mozPreservesPitch = false;
           if ('webkitPreservesPitch' in audio) audio.webkitPreservesPitch = false;
-          audio.playbackRate = finalPitch;
+          audio.playbackRate = Math.max(0.5, Math.min(2.0, finalPitch));
+        } else {
+          audio.preservesPitch = true;
+          audio.playbackRate = Math.max(0.5, Math.min(2.0, parseFloat(finalSpeed) || 0.75));
         }
 
-        audio.play().finally(() => {
-          setTimeout(() => {
-            btnTestVoice.disabled = false;
-            btnTestVoice.innerHTML = previewVoiceDefaultHtml;
-          }, 3500);
-        });
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('[Dashboard] Audio element failed, attempting speechSynthesis:', err);
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              window.speechSynthesis.resume();
+              const utt = new SpeechSynthesisUtterance(sampleText);
+              utt.rate = Math.max(0.5, Math.min(2.0, parseFloat(finalSpeed) || 0.75));
+              utt.pitch = Math.max(0.5, Math.min(2.0, parseFloat(finalPitch) || 1.0));
+              utt.lang = config.lang || 'en-IN';
+              window.speechSynthesis.speak(utt);
+            }
+          });
+        }
+
+        setTimeout(() => {
+          btnTestVoice.disabled = false;
+          btnTestVoice.innerHTML = previewVoiceDefaultHtml;
+        }, 3500);
       }
     });
+  }
+
+  // Helper to cleanly sanitize donor message, stripping prefixes like "Note:", "note:", "Message:", "सन्देश:", etc.
+  function cleanDonorNote(note) {
+    if (!note || typeof note !== 'string') return '';
+    let clean = note.trim();
+
+    const prefixRegex = /^(?:for\s+)?(?:note|message|msg|remarks?)[\s:\-–—]+|^सन्देश[:\s]+|^संदेश[:\s]+|^செய்தி[:\s]+|^సందేశం[:\s]+|^ಸಂದೇಶ[:\s]+|^സന്ദേശം[:\s]+/i;
+    while (prefixRegex.test(clean)) {
+      clean = clean.replace(prefixRegex, '').trim();
+    }
+
+    clean = clean.replace(/^(?:note|msg|message)\s+/i, '').trim();
+    clean = clean.replace(/^[\s:\-–—,.]+/, '').trim();
+
+    const lower = clean.toLowerCase();
+    const placeholders = [
+      'no message provided',
+      'payment received',
+      'live upi superchat',
+      'tested live from streamer app!',
+      'tested live from streamer companion app!',
+      'tested live from streamer app',
+      'upi',
+      'payment'
+    ];
+    if (placeholders.includes(lower)) {
+      return '';
+    }
+
+    return clean;
   }
 
   // 5. Test Alert Submission
@@ -1221,7 +1269,8 @@
       const amount = inputAmount.value;
       const appName = inputApp.value;
       const senderName = inputSender.value.trim() || 'Anonymous';
-      const note = inputNote.value.trim();
+      const rawNote = inputNote.value.trim();
+      const note = cleanDonorNote(rawNote);
 
       btnFireTest.disabled = true;
       btnFireTest.innerHTML = '<span>Dispatching...</span>';

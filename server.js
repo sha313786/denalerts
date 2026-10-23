@@ -76,6 +76,41 @@ function sanitizeText(text) {
   return clean;
 }
 
+function cleanDonorNote(note) {
+  if (!note || typeof note !== 'string') return '';
+  let clean = note.trim();
+
+  // Strip common bank/app/notification prefixes repeatedly
+  const prefixRegex = /^(?:for\s+)?(?:note|message|msg|remarks?)[\s:\-–—]+|^सन्देश[:\s]+|^संदेश[:\s]+|^செய்தி[:\s]+|^సందేశం[:\s]+|^ಸಂದೇಶ[:\s]+|^സന്ദേശം[:\s]+/i;
+  while (prefixRegex.test(clean)) {
+    clean = clean.replace(prefixRegex, '').trim();
+  }
+
+  // Strip standalone leading "note " or "message " or "msg "
+  clean = clean.replace(/^(?:note|msg|message)\s+/i, '').trim();
+
+  // Strip any leading punctuation left over (like "- ", ": ", etc.)
+  clean = clean.replace(/^[\s:\-–—,.]+/, '').trim();
+
+  // Strip system/fallback placeholders so TTS and overlay don't speak useless text
+  const lower = clean.toLowerCase();
+  const placeholders = [
+    'no message provided',
+    'payment received',
+    'live upi superchat',
+    'tested live from streamer app!',
+    'tested live from streamer companion app!',
+    'tested live from streamer app',
+    'upi',
+    'payment'
+  ];
+  if (placeholders.includes(lower)) {
+    return '';
+  }
+
+  return clean;
+}
+
 function cleanId(raw) {
   if (!raw) return 'default';
   const cleaned = String(raw).toLowerCase().replace(/[^a-z0-9_-]/g, '').trim();
@@ -706,13 +741,13 @@ app.post('/api/payment', (req, res) => {
   }
   recentPaymentHashes.set(dupKey, now);
 
-  // 3. Profanity & Message Flood Sanitization
+  // 3. Profanity & Message Flood Sanitization + Prefix Removal ("Note: ", "note: ", etc.)
   let cleanSender = sanitizeText(cleanSenderRaw);
-  let cleanNote = sanitizeText(note || '');
+  let cleanNote = cleanDonorNote(sanitizeText(note || ''));
 
   if (session.settings.censorProfanity !== false) {
     cleanSender = filterProfanity(cleanSender);
-    cleanNote = filterProfanity(cleanNote);
+    if (cleanNote) cleanNote = filterProfanity(cleanNote);
   }
 
   // 4. Minimum Alert & TTS Threshold Check
@@ -780,10 +815,11 @@ app.post('/api/test', (req, res) => {
   const { appName, amount, senderName, note, testGoal } = req.body;
 
   let cleanSender = sanitizeText(senderName || 'Stream Fan');
-  let cleanNote = sanitizeText(note || 'GG! Keep streaming!');
+  let rawNote = (note !== undefined && note !== null && String(note).trim().length > 0) ? String(note) : 'Clutch this 1v3 bro!';
+  let cleanNote = cleanDonorNote(sanitizeText(rawNote));
   if (session.settings.censorProfanity !== false) {
     cleanSender = filterProfanity(cleanSender);
-    cleanNote = filterProfanity(cleanNote);
+    if (cleanNote) cleanNote = filterProfanity(cleanNote);
   }
 
   const numericAmount = parseFloat(amount || '100') || 100;
@@ -1619,6 +1655,15 @@ app.get('/api/tts', async (req, res) => {
   let text = (req.query.text || '').trim();
   const lang = (req.query.lang || 'en-IN').trim();
   if (!text) return res.status(400).send('No text provided');
+
+  // Strip rupee symbols (words like "rupees" are already used in templates), quotes, brackets, and emojis
+  text = text
+    .replace(/[₹]/g, '')
+    .replace(/[\(\)\[\]\{\}\"\'\`]/g, '')
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
   if (text.length > 250) {
     text = text.substring(0, 250);
   }

@@ -1535,4 +1535,133 @@ input:focus, select:focus {
   }
 }
 
+/* ==========================================================================
+   Auto-Save & Active Media Preset Styling
+   ========================================================================== */
+
+.btn-sound-preset.active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.28), rgba(59, 130, 246, 0.32)) !important;
+  border-color: #00f0ff !important;
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.5) !important;
+  font-weight: 800 !important;
+  position: relative;
+}
+
+.btn-sound-preset.active::after,
+.btn-visual-preset.active::after {
+  content: '✓';
+  margin-left: 4px;
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 900;
+}
+
+.btn-visual-preset.active {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.28), rgba(168, 85, 247, 0.32)) !important;
+  border-color: #ec4899 !important;
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(236, 72, 153, 0.5) !important;
+  font-weight: 800 !important;
+  position: relative;
+}
+
+.btn-speed-preset.active {
+  background: rgba(0, 240, 255, 0.25) !important;
+  border-color: #00f0ff !important;
+  color: #00f0ff !important;
+  font-weight: 800 !important;
+}
+
+/* Auto-Save Indicator Badges */
+.auto-save-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+}
+
+.auto-save-pill.saving {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.auto-save-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.auto-save-pill.saving .auto-save-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.6; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.saved-check-badge {
+  font-size: 10px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.2s ease;
+}
+
+/* Global Floating Auto-Save Notification Toast */
+.global-autosave-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(8, 14, 26, 0.96);
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  border-radius: 100px;
+  padding: 10px 20px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.3);
+  backdrop-filter: blur(14px);
+  z-index: 99999;
+  opacity: 0;
+  transform: translateY(16px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.global-autosave-toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.global-autosave-toast .toast-spark {
+  color: #10b981;
+  font-size: 15px;
+}
+
+
 

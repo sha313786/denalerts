@@ -238,9 +238,13 @@
                 </svg>
               </span>
               <div style="flex:1;">
-                <div style="display:flex; align-items:center; gap:6px;">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                   <h2 style="font-size:14px; margin:0;">Alert Sound, GIF &amp; Video Meme Studio</h2>
                   <span style="background:linear-gradient(135deg, #00f0ff, #ec4899); color:#000; font-size:9.5px; font-weight:900; padding:1px 7px; border-radius:10px; letter-spacing:0.5px;">PRO</span>
+                  <span id="media-auto-save-pill" class="auto-save-pill">
+                    <span class="auto-save-dot"></span>
+                    <span>Auto-Saved</span>
+                  </span>
                 </div>
                 <div style="font-size:11px; color:var(--text-muted);">Customize the chime and animated visual memes played during superchats!</div>
               </div>
@@ -257,7 +261,10 @@
                 <label style="font-size:11.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">
                   🔔 Alert Sound Chime
                 </label>
-                <span id="active-sound-label" style="font-size:11px; color:#34d399; font-weight:700;">Default Chime</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span id="active-sound-label" style="font-size:11px; color:#34d399; font-weight:700;">Default Chime</span>
+                  <span id="sound-saved-check" class="saved-check-badge">✓ Auto-Saved</span>
+                </div>
               </div>
 
               <!-- Sound Presets -->
@@ -292,7 +299,10 @@
                 <label style="font-size:11.5px; font-weight:800; color:#ec4899; text-transform:uppercase; letter-spacing:0.5px;">
                   🎬 Visual Meme / GIF / Video
                 </label>
-                <span id="active-visual-label" style="font-size:11px; color:#34d399; font-weight:700;">Default Pulse</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span id="active-visual-label" style="font-size:11px; color:#34d399; font-weight:700;">Default Pulse</span>
+                  <span id="visual-saved-check" class="saved-check-badge">✓ Auto-Saved</span>
+                </div>
               </div>
 
               <!-- Meme GIF Presets (Self-Hosted on Server for Instant Playback) -->
@@ -342,15 +352,24 @@
                 <span>🚀 Test Fire on Stream Overlay</span>
               </button>
             </div>
+
+            <!-- Auto-save Live Status Note -->
+            <div style="font-size:11px; color:#10b981; display:flex; align-items:center; justify-content:center; gap:5px; margin-top:10px; font-weight:600;">
+              <span>⚡</span>
+              <span>All sound chimes &amp; visual memes auto-save to cloud overlay instantly</span>
+            </div>
           </div>
         </div>
 
         <!-- 2. Voice & Anti-Spam Controls Pane -->
         <div id="pane-voice" class="studio-pane">
           <div class="card settings-card">
-          <div class="card-title">
-            <span class="card-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-            <h2>Anti-Spam &amp; Voice Controls</h2>
+          <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="card-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+              <h2 style="margin:0;">Anti-Spam &amp; Voice Controls</h2>
+            </div>
+            <span class="auto-save-pill"><span class="auto-save-dot"></span> <span>Auto-Saved</span></span>
           </div>
 
           <!-- Thresholds -->
@@ -748,6 +767,7 @@
                 <div style="display:flex; align-items:center; gap:6px;">
                   <h2 style="font-size:13.5px; margin:0;">Live Stream Goal Bar</h2>
                   <span id="goal-pro-badge" style="background:linear-gradient(135deg, #00f0ff, #6366f1); color:#000; font-size:9.5px; font-weight:900; padding:1px 7px; border-radius:10px; letter-spacing:0.5px;">PRO</span>
+                  <span class="auto-save-pill"><span class="auto-save-dot"></span> <span>Auto-Saved</span></span>
                 </div>
                 <div style="font-size:11px; color:var(--text-muted);">Real-time animated goal bar for OBS browser source</div>
               </div>
@@ -1089,6 +1109,12 @@
     </div>
   </div>
 
-  <script src="/dashboard.js?v=27"></script>
+  <!-- Global Floating Auto-Save Notification Toast -->
+  <div id="global-autosave-toast" class="global-autosave-toast">
+    <span class="toast-spark">⚡</span>
+    <span id="autosave-toast-text">Changes auto-saved to cloud!</span>
+  </div>
+
+  <script src="/dashboard.js?v=29"></script>
 </body>
 </html>

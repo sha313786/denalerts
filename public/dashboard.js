@@ -143,6 +143,39 @@
   let historyData = [];
   let currentSubscription = { plan: 'pro', tierName: 'Creator Pro' };
 
+  // Global Auto-Save Notification Helper
+  const globalToast = document.getElementById('global-autosave-toast');
+  const toastText = document.getElementById('autosave-toast-text');
+  let toastTimer = null;
+
+  function triggerAutoSaveIndicator(text = 'Changes auto-saved to cloud! ✓', isSaving = false) {
+    if (globalToast && toastText) {
+      toastText.textContent = text;
+      globalToast.classList.add('show');
+      clearTimeout(toastTimer);
+      if (!isSaving) {
+        toastTimer = setTimeout(() => {
+          globalToast.classList.remove('show');
+        }, 2400);
+      }
+    }
+
+    const pills = document.querySelectorAll('.auto-save-pill');
+    pills.forEach(p => {
+      p.classList.toggle('saving', isSaving);
+      const span = p.querySelector('span:last-child');
+      if (span) {
+        span.textContent = isSaving ? 'Saving...' : 'Auto-Saved';
+      }
+    });
+
+    const checks = document.querySelectorAll('.saved-check-badge');
+    checks.forEach(c => {
+      c.style.display = 'inline-flex';
+      c.textContent = isSaving ? '⏳ Saving...' : '✓ Auto-Saved';
+    });
+  }
+
   // 1. Session Authentication Check (Strict Security)
   const authToken = localStorage.getItem('denalerts_auth_token');
   if (!authToken) {
@@ -403,9 +436,23 @@
   });
 
   // 4. Voice Controls & Speed Presets
+  let speedDebounce = null;
   if (rangeSpeed) {
     rangeSpeed.addEventListener('input', () => {
-      if (speedVal) speedVal.textContent = parseFloat(rangeSpeed.value).toFixed(2) + 'x';
+      const spd = parseFloat(rangeSpeed.value).toFixed(2);
+      if (speedVal) speedVal.textContent = spd + 'x';
+      speedPresets.forEach(preset => {
+        preset.classList.toggle('active', preset.getAttribute('data-speed') === rangeSpeed.value);
+      });
+      clearTimeout(speedDebounce);
+      speedDebounce = setTimeout(() => {
+        saveSettings();
+        triggerAutoSaveIndicator(`Voice speed set to ${spd}x ✓`);
+      }, 350);
+    });
+
+    rangeSpeed.addEventListener('change', () => {
+      saveSettings();
     });
   }
 
@@ -416,6 +463,9 @@
         rangeSpeed.value = spd;
         if (speedVal) speedVal.textContent = parseFloat(spd).toFixed(2) + 'x';
       }
+      speedPresets.forEach(p => p.classList.toggle('active', p === preset));
+      saveSettings();
+      triggerAutoSaveIndicator(`Voice speed preset ${spd}x auto-saved ✓`);
     });
   });
 
@@ -812,8 +862,9 @@
       if (data && data.settings) {
         currentSettings = { ...currentSettings, ...data.settings };
       }
+      triggerAutoSaveIndicator('Settings auto-saved to stream! ✓');
       if (btnSaveSettings) {
-        btnSaveSettings.innerHTML = '<span>Saved</span>';
+        btnSaveSettings.innerHTML = '<span>Saved ✓</span>';
         setTimeout(() => {
           btnSaveSettings.disabled = false;
           btnSaveSettings.innerHTML = saveBtnDefaultHtml;
@@ -828,9 +879,18 @@
   }
 
   if (btnSaveSettings) btnSaveSettings.addEventListener('click', saveSettings);
-  if (inputMinAlert) inputMinAlert.addEventListener('change', saveSettings);
-  if (inputMinTts) inputMinTts.addEventListener('change', saveSettings);
-  if (checkCensor) checkCensor.addEventListener('change', saveSettings);
+  if (inputMinAlert) inputMinAlert.addEventListener('change', () => {
+    saveSettings();
+    triggerAutoSaveIndicator('Min alert threshold auto-saved! ✓');
+  });
+  if (inputMinTts) inputMinTts.addEventListener('change', () => {
+    saveSettings();
+    triggerAutoSaveIndicator('Min Voice TTS threshold auto-saved! ✓');
+  });
+  if (checkCensor) checkCensor.addEventListener('change', () => {
+    saveSettings();
+    triggerAutoSaveIndicator('Profanity filter auto-saved! ✓');
+  });
 
   // Goal Status Message Helper
   function showGoalStatus(text, isError = false) {
@@ -849,6 +909,7 @@
     btnSaveGoal.addEventListener('click', () => {
       saveSettings();
       showGoalStatus('Stream Goal settings saved!');
+      triggerAutoSaveIndicator('Goal settings auto-saved! ✓');
     });
   }
 
@@ -858,6 +919,16 @@
       el.addEventListener('change', () => {
         saveSettings();
         showGoalStatus('Stream Goal updated & synced with OBS!');
+        triggerAutoSaveIndicator('Goal updated & auto-saved! ✓');
+      });
+    }
+  });
+
+  [inputGoalBarStart, inputGoalBarEnd, inputGoalGlow, inputGoalText].forEach(el => {
+    if (el) {
+      el.addEventListener('change', () => {
+        saveSettings();
+        triggerAutoSaveIndicator('Goal custom colors auto-saved! ✓');
       });
     }
   });
@@ -866,6 +937,7 @@
     checkGoalEnabled.addEventListener('change', () => {
       saveSettings();
       showGoalStatus(checkGoalEnabled.checked ? 'Goal bar enabled' : 'Goal bar disabled');
+      triggerAutoSaveIndicator(checkGoalEnabled.checked ? 'Goal bar enabled (Auto-Saved) ✓' : 'Goal bar disabled (Auto-Saved) ✓');
     });
   }
 
@@ -1858,12 +1930,30 @@
 
   function renderActiveMedia(settings) {
     if (!settings) return;
+    const currentSoundUrl = settings.customAlertSoundUrl || '/sounds/default.wav';
+    const currentVisualUrl = settings.customMediaUrl || '';
+
     if (activeSoundLabel) {
       activeSoundLabel.textContent = settings.customAlertSoundName || 'Default Chime';
     }
     if (activeVisualLabel) {
       activeVisualLabel.textContent = settings.customMediaName || 'Default Pulse';
     }
+
+    // Update active class on Sound Presets
+    soundPresetBtns.forEach(btn => {
+      const isMatch = (btn.dataset.url === currentSoundUrl) || 
+                      (!settings.customAlertSoundUrl && btn.dataset.url === '/sounds/default.wav');
+      btn.classList.toggle('active', isMatch);
+    });
+
+    // Update active class on Visual Meme Presets
+    visualPresetBtns.forEach(btn => {
+      const isMatch = (!currentVisualUrl && (btn.dataset.type === 'none' || !btn.dataset.url)) ||
+                      (btn.dataset.url && currentVisualUrl === btn.dataset.url);
+      btn.classList.toggle('active', isMatch);
+    });
+
     if (settings.customMediaUrl) {
       if (visualPreviewEmpty) visualPreviewEmpty.style.display = 'none';
       if (settings.customMediaType === 'video') {
@@ -1886,11 +1976,17 @@
     }
   }
 
-  // Sound Presets
+  // Sound Presets (Instant Auto-Save)
   soundPresetBtns.forEach(btn => {
     btn.addEventListener('click', async () => {
       const url = btn.dataset.url;
       const name = btn.dataset.name;
+
+      // Optimistic highlight
+      soundPresetBtns.forEach(b => b.classList.toggle('active', b === btn));
+      if (activeSoundLabel) activeSoundLabel.textContent = name;
+      triggerAutoSaveIndicator(`Auto-saving chime: ${name}...`, true);
+
       try {
         new Audio(url).play().catch(() => {});
         const res = await fetch(`/api/upload-media?code=${encodeURIComponent(streamId)}`, {
@@ -1906,16 +2002,19 @@
         if (data.success) {
           currentSettings = { ...currentSettings, ...data.settings };
           renderActiveMedia(currentSettings);
+          triggerAutoSaveIndicator(`Auto-Saved: ${name} ✓`);
         } else {
           alert(data.error || 'Failed to set sound preset');
+          renderActiveMedia(currentSettings);
         }
       } catch (e) {
         console.error(e);
+        renderActiveMedia(currentSettings);
       }
     });
   });
 
-  // Sound File Upload
+  // Sound File Upload (Instant Auto-Save)
   if (inputCustomSoundFile) {
     inputCustomSoundFile.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -1924,6 +2023,7 @@
         alert('Audio file size exceeds 15 MB limit.');
         return;
       }
+      triggerAutoSaveIndicator('Uploading and auto-saving audio...', true);
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -1941,6 +2041,7 @@
             currentSettings = { ...currentSettings, ...data.settings };
             renderActiveMedia(currentSettings);
             new Audio(currentSettings.customAlertSoundUrl).play().catch(() => {});
+            triggerAutoSaveIndicator('Custom chime uploaded & auto-saved! ✓');
           } else {
             alert(data.error || 'Failed to upload sound file');
           }
@@ -1960,9 +2061,10 @@
     });
   }
 
-  // Reset Sound Button
+  // Reset Sound Button (Instant Auto-Save)
   if (btnResetSound) {
     btnResetSound.addEventListener('click', async () => {
+      triggerAutoSaveIndicator('Resetting alert sound...', true);
       try {
         const res = await fetch(`/api/reset-media?code=${encodeURIComponent(streamId)}`, {
           method: 'POST',
@@ -1973,6 +2075,7 @@
         if (data.success) {
           currentSettings = { ...currentSettings, ...data.settings };
           renderActiveMedia(currentSettings);
+          triggerAutoSaveIndicator('Sound reset to Default Chime (Auto-Saved) ✓');
         }
       } catch (e) {
         console.error(e);
@@ -1980,12 +2083,18 @@
     });
   }
 
-  // Visual Meme Presets
+  // Visual Meme Presets (Instant Auto-Save)
   visualPresetBtns.forEach(btn => {
     btn.addEventListener('click', async () => {
       const url = btn.dataset.url;
       const type = btn.dataset.type;
       const name = btn.dataset.name;
+
+      // Optimistic highlight
+      visualPresetBtns.forEach(b => b.classList.toggle('active', b === btn));
+      if (activeVisualLabel) activeVisualLabel.textContent = name;
+      triggerAutoSaveIndicator(`Auto-saving visual meme: ${name}...`, true);
+
       try {
         if (!url || type === 'none') {
           const res = await fetch(`/api/reset-media?code=${encodeURIComponent(streamId)}`, {
@@ -1997,6 +2106,7 @@
           if (data.success) {
             currentSettings = { ...currentSettings, ...data.settings };
             renderActiveMedia(currentSettings);
+            triggerAutoSaveIndicator('Clean card (No Meme) auto-saved! ✓');
           }
           return;
         }
@@ -2014,16 +2124,19 @@
         if (data.success) {
           currentSettings = { ...currentSettings, ...data.settings };
           renderActiveMedia(currentSettings);
+          triggerAutoSaveIndicator(`Auto-Saved: ${name} ✓`);
         } else {
           alert(data.error || 'Failed to set visual preset');
+          renderActiveMedia(currentSettings);
         }
       } catch (e) {
         console.error(e);
+        renderActiveMedia(currentSettings);
       }
     });
   });
 
-  // Visual Meme File Upload
+  // Visual Meme File Upload (Instant Auto-Save)
   if (inputCustomVisualFile) {
     inputCustomVisualFile.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -2032,6 +2145,7 @@
         alert('File size exceeds 25 MB limit.');
         return;
       }
+      triggerAutoSaveIndicator('Uploading and auto-saving meme...', true);
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -2048,6 +2162,7 @@
           if (data.success) {
             currentSettings = { ...currentSettings, ...data.settings };
             renderActiveMedia(currentSettings);
+            triggerAutoSaveIndicator('Custom meme file auto-saved! ✓');
           } else {
             alert(data.error || 'Failed to upload meme file');
           }
@@ -2059,11 +2174,12 @@
     });
   }
 
-  // Apply Visual URL
+  // Apply Visual URL (Instant Auto-Save on Click or Enter Key)
   if (btnApplyVisualUrl && inputCustomVisualUrl) {
-    btnApplyVisualUrl.addEventListener('click', async () => {
+    const handleApplyVisualUrl = async () => {
       const url = inputCustomVisualUrl.value.trim();
       if (!url) return;
+      triggerAutoSaveIndicator('Auto-saving external media URL...', true);
       try {
         const res = await fetch(`/api/upload-media?code=${encodeURIComponent(streamId)}`, {
           method: 'POST',
@@ -2079,18 +2195,28 @@
           currentSettings = { ...currentSettings, ...data.settings };
           renderActiveMedia(currentSettings);
           inputCustomVisualUrl.value = '';
+          triggerAutoSaveIndicator('External meme URL auto-saved! ✓');
         } else {
           alert(data.error || 'Failed to set URL');
         }
       } catch (err) {
         alert('Error: ' + err.message);
       }
+    };
+
+    btnApplyVisualUrl.addEventListener('click', handleApplyVisualUrl);
+    inputCustomVisualUrl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleApplyVisualUrl();
+      }
     });
   }
 
-  // Reset Visual Button
+  // Reset Visual Button (Instant Auto-Save)
   if (btnResetVisual) {
     btnResetVisual.addEventListener('click', async () => {
+      triggerAutoSaveIndicator('Removing visual meme...', true);
       try {
         const res = await fetch(`/api/reset-media?code=${encodeURIComponent(streamId)}`, {
           method: 'POST',
@@ -2101,6 +2227,7 @@
         if (data.success) {
           currentSettings = { ...currentSettings, ...data.settings };
           renderActiveMedia(currentSettings);
+          triggerAutoSaveIndicator('Visual meme removed (Auto-Saved) ✓');
         }
       } catch (e) {
         console.error(e);

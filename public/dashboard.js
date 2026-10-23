@@ -45,6 +45,22 @@
   const btnSaveDiscord = document.getElementById('btn-save-discord');
   const discordStatusMsg = document.getElementById('discord-status-msg');
 
+  // Streamlabs & StreamElements Relay elements (PRO)
+  const checkStreamlabsEnabled = document.getElementById('check-streamlabs-enabled');
+  const inputStreamlabsToken = document.getElementById('input-streamlabs-token');
+  const btnTestStreamlabs = document.getElementById('btn-test-streamlabs');
+  const btnSaveStreamlabs = document.getElementById('btn-save-streamlabs');
+  const streamlabsStatusMsg = document.getElementById('streamlabs-status-msg');
+  const streamlabsLockedBanner = document.getElementById('streamlabs-locked-banner');
+
+  const checkStreamElementsEnabled = document.getElementById('check-streamelements-enabled');
+  const inputStreamElementsChannel = document.getElementById('input-streamelements-channel');
+  const inputStreamElementsToken = document.getElementById('input-streamelements-token');
+  const btnTestStreamElements = document.getElementById('btn-test-streamelements');
+  const btnSaveStreamElements = document.getElementById('btn-save-streamelements');
+  const streamElementsStatusMsg = document.getElementById('streamelements-status-msg');
+  const streamElementsLockedBanner = document.getElementById('streamelements-locked-banner');
+
   // Own Voice Studio elements
   const ownVoiceStudio = document.getElementById('own-voice-studio');
   const ovStatusCard = document.getElementById('ov-status-card');
@@ -762,6 +778,11 @@
       censorProfanity: checkCensor ? checkCensor.checked : true,
       discordWebhookUrl: inputDiscordWebhook ? inputDiscordWebhook.value.trim() : '',
       discordWebhookEnabled: checkDiscordEnabled ? checkDiscordEnabled.checked : false,
+      streamlabsEnabled: checkStreamlabsEnabled ? checkStreamlabsEnabled.checked : false,
+      streamlabsToken: inputStreamlabsToken ? inputStreamlabsToken.value.trim() : '',
+      streamElementsEnabled: checkStreamElementsEnabled ? checkStreamElementsEnabled.checked : false,
+      streamElementsChannelId: inputStreamElementsChannel ? inputStreamElementsChannel.value.trim() : '',
+      streamElementsToken: inputStreamElementsToken ? inputStreamElementsToken.value.trim() : '',
       goalTitle: inputGoalTitle ? inputGoalTitle.value.trim() : 'Live Stream Goal',
       goalTarget: parseFloat(inputGoalTarget ? inputGoalTarget.value : 1000) || 1000,
       goalCurrent: parseFloat(inputGoalCurrent ? inputGoalCurrent.value : 0) || 0,
@@ -951,6 +972,170 @@
     });
   }
 
+  // Streamlabs & StreamElements Relay Handlers (PRO)
+  function showStreamlabsStatus(msg, isErr = false) {
+    if (!streamlabsStatusMsg) return;
+    streamlabsStatusMsg.textContent = msg;
+    streamlabsStatusMsg.style.display = 'block';
+    streamlabsStatusMsg.style.background = isErr ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+    streamlabsStatusMsg.style.color = isErr ? '#fca5a5' : '#6ee7b7';
+    streamlabsStatusMsg.style.border = isErr ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)';
+    setTimeout(() => {
+      streamlabsStatusMsg.style.display = 'none';
+    }, 5000);
+  }
+
+  function showStreamElementsStatus(msg, isErr = false) {
+    if (!streamElementsStatusMsg) return;
+    streamElementsStatusMsg.textContent = msg;
+    streamElementsStatusMsg.style.display = 'block';
+    streamElementsStatusMsg.style.background = isErr ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+    streamElementsStatusMsg.style.color = isErr ? '#fca5a5' : '#6ee7b7';
+    streamElementsStatusMsg.style.border = isErr ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)';
+    setTimeout(() => {
+      streamElementsStatusMsg.style.display = 'none';
+    }, 5000);
+  }
+
+  if (checkStreamlabsEnabled) {
+    checkStreamlabsEnabled.addEventListener('change', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (checkStreamlabsEnabled.checked && !isPro) {
+        checkStreamlabsEnabled.checked = false;
+        alert("👑 Streamlabs Event Relay is an exclusive Creator Pro feature. Upgrade to Pro to enable!");
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        return;
+      }
+      saveSettings();
+      showStreamlabsStatus(checkStreamlabsEnabled.checked ? 'Streamlabs relay enabled' : 'Streamlabs relay disabled');
+    });
+  }
+
+  if (btnSaveStreamlabs) {
+    btnSaveStreamlabs.addEventListener('click', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (!isPro) {
+        alert("👑 Streamlabs Event Relay is an exclusive Creator Pro feature. Upgrade to Pro to configure!");
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        return;
+      }
+      saveSettings();
+      showStreamlabsStatus('Streamlabs configuration saved!');
+    });
+  }
+
+  if (btnTestStreamlabs) {
+    btnTestStreamlabs.addEventListener('click', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (!isPro) {
+        alert("👑 Streamlabs Event Relay is an exclusive Creator Pro feature. Upgrade to Pro to test!");
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        return;
+      }
+      const token = (inputStreamlabsToken ? inputStreamlabsToken.value : '').trim();
+      if (!token) {
+        showStreamlabsStatus('Please enter your Streamlabs Socket Token or Access Token first.', true);
+        return;
+      }
+      btnTestStreamlabs.disabled = true;
+      btnTestStreamlabs.innerHTML = '<span>Testing...</span>';
+
+      fetch('/api/test-streamlabs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authToken
+        },
+        body: JSON.stringify({ token })
+      })
+      .then(r => r.json())
+      .then(data => {
+        btnTestStreamlabs.disabled = false;
+        btnTestStreamlabs.innerHTML = '<span>⚡ Test Streamlabs Alert</span>';
+        if (data.success) {
+          showStreamlabsStatus('✅ ' + data.message);
+        } else {
+          showStreamlabsStatus('❌ ' + (data.error || 'Failed to forward to Streamlabs'), true);
+        }
+      })
+      .catch(err => {
+        btnTestStreamlabs.disabled = false;
+        btnTestStreamlabs.innerHTML = '<span>⚡ Test Streamlabs Alert</span>';
+        showStreamlabsStatus('❌ Connection error: ' + err.message, true);
+      });
+    });
+  }
+
+  if (checkStreamElementsEnabled) {
+    checkStreamElementsEnabled.addEventListener('change', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (checkStreamElementsEnabled.checked && !isPro) {
+        checkStreamElementsEnabled.checked = false;
+        alert("👑 StreamElements Tip Relay is an exclusive Creator Pro feature. Upgrade to Pro to enable!");
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        return;
+      }
+      saveSettings();
+      showStreamElementsStatus(checkStreamElementsEnabled.checked ? 'StreamElements relay enabled' : 'StreamElements relay disabled');
+    });
+  }
+
+  if (btnSaveStreamElements) {
+    btnSaveStreamElements.addEventListener('click', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (!isPro) {
+        alert("👑 StreamElements Tip Relay is an exclusive Creator Pro feature. Upgrade to Pro to configure!");
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        return;
+      }
+      saveSettings();
+      showStreamElementsStatus('StreamElements configuration saved!');
+    });
+  }
+
+  if (btnTestStreamElements) {
+    btnTestStreamElements.addEventListener('click', () => {
+      const isPro = currentSubscription && (currentSubscription.plan === 'pro' || currentSubscription.plan === 'pro_trial');
+      if (!isPro) {
+        alert("👑 StreamElements Tip Relay is an exclusive Creator Pro feature. Upgrade to Pro to test!");
+        if (modalSubscription) modalSubscription.style.display = 'flex';
+        return;
+      }
+      const channelId = (inputStreamElementsChannel ? inputStreamElementsChannel.value : '').trim();
+      const token = (inputStreamElementsToken ? inputStreamElementsToken.value : '').trim();
+      if (!channelId || !token) {
+        showStreamElementsStatus('Please enter both Channel ID and JWT Token.', true);
+        return;
+      }
+      btnTestStreamElements.disabled = true;
+      btnTestStreamElements.innerHTML = '<span>Testing...</span>';
+
+      fetch('/api/test-streamelements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authToken
+        },
+        body: JSON.stringify({ channelId, token })
+      })
+      .then(r => r.json())
+      .then(data => {
+        btnTestStreamElements.disabled = false;
+        btnTestStreamElements.innerHTML = '<span>⚡ Test StreamElements Alert</span>';
+        if (data.success) {
+          showStreamElementsStatus('✅ ' + data.message);
+        } else {
+          showStreamElementsStatus('❌ ' + (data.error || 'Failed to forward to StreamElements'), true);
+        }
+      })
+      .catch(err => {
+        btnTestStreamElements.disabled = false;
+        btnTestStreamElements.innerHTML = '<span>⚡ Test StreamElements Alert</span>';
+        showStreamElementsStatus('❌ Connection error: ' + err.message, true);
+      });
+    });
+  }
+
   const previewVoiceDefaultHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:3px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> <span>Preview Voice</span>';
   const fireTestDefaultHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle; margin-right:4px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> <span>Trigger Test Alert</span>';
 
@@ -1107,6 +1292,19 @@
 
     if (goalLockedBanner) {
       goalLockedBanner.style.display = isPro ? 'none' : 'block';
+    }
+
+    if (streamlabsLockedBanner) {
+      streamlabsLockedBanner.style.display = isPro ? 'none' : 'block';
+    }
+    if (streamElementsLockedBanner) {
+      streamElementsLockedBanner.style.display = isPro ? 'none' : 'block';
+    }
+    if (checkStreamlabsEnabled && !isPro) {
+      checkStreamlabsEnabled.checked = false;
+    }
+    if (checkStreamElementsEnabled && !isPro) {
+      checkStreamElementsEnabled.checked = false;
     }
 
     const mediaLockedBanner = document.getElementById('media-locked-banner');
@@ -1447,6 +1645,21 @@
             if (checkDiscordEnabled && msg.data.settings.discordWebhookEnabled !== undefined) {
               checkDiscordEnabled.checked = Boolean(msg.data.settings.discordWebhookEnabled);
             }
+            if (inputStreamlabsToken && msg.data.settings.streamlabsToken !== undefined) {
+              inputStreamlabsToken.value = msg.data.settings.streamlabsToken || '';
+            }
+            if (checkStreamlabsEnabled && msg.data.settings.streamlabsEnabled !== undefined) {
+              checkStreamlabsEnabled.checked = Boolean(msg.data.settings.streamlabsEnabled);
+            }
+            if (inputStreamElementsChannel && msg.data.settings.streamElementsChannelId !== undefined) {
+              inputStreamElementsChannel.value = msg.data.settings.streamElementsChannelId || '';
+            }
+            if (inputStreamElementsToken && msg.data.settings.streamElementsToken !== undefined) {
+              inputStreamElementsToken.value = msg.data.settings.streamElementsToken || '';
+            }
+            if (checkStreamElementsEnabled && msg.data.settings.streamElementsEnabled !== undefined) {
+              checkStreamElementsEnabled.checked = Boolean(msg.data.settings.streamElementsEnabled);
+            }
             if (inputGoalTitle && msg.data.settings.goalTitle !== undefined) inputGoalTitle.value = msg.data.settings.goalTitle;
             if (inputGoalTarget && msg.data.settings.goalTarget !== undefined) inputGoalTarget.value = msg.data.settings.goalTarget;
             if (inputGoalCurrent && msg.data.settings.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.settings.goalCurrent;
@@ -1484,6 +1697,21 @@
             }
             if (checkDiscordEnabled && msg.data.discordWebhookEnabled !== undefined) {
               checkDiscordEnabled.checked = Boolean(msg.data.discordWebhookEnabled);
+            }
+            if (inputStreamlabsToken && msg.data.streamlabsToken !== undefined) {
+              inputStreamlabsToken.value = msg.data.streamlabsToken || '';
+            }
+            if (checkStreamlabsEnabled && msg.data.streamlabsEnabled !== undefined) {
+              checkStreamlabsEnabled.checked = Boolean(msg.data.streamlabsEnabled);
+            }
+            if (inputStreamElementsChannel && msg.data.streamElementsChannelId !== undefined) {
+              inputStreamElementsChannel.value = msg.data.streamElementsChannelId || '';
+            }
+            if (inputStreamElementsToken && msg.data.streamElementsToken !== undefined) {
+              inputStreamElementsToken.value = msg.data.streamElementsToken || '';
+            }
+            if (checkStreamElementsEnabled && msg.data.streamElementsEnabled !== undefined) {
+              checkStreamElementsEnabled.checked = Boolean(msg.data.streamElementsEnabled);
             }
             if (inputGoalTitle && msg.data.goalTitle !== undefined) inputGoalTitle.value = msg.data.goalTitle;
             if (inputGoalTarget && msg.data.goalTarget !== undefined) inputGoalTarget.value = msg.data.goalTarget;

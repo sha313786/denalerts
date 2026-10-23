@@ -137,6 +137,11 @@ function getSession(streamId) {
         censorProfanity: true,
         discordWebhookUrl: '',
         discordWebhookEnabled: false,
+        streamlabsEnabled: false,
+        streamlabsToken: '',
+        streamElementsEnabled: false,
+        streamElementsToken: '',
+        streamElementsChannelId: '',
         goalTitle: 'Live Stream Goal',
         goalTarget: 1000,
         goalCurrent: 0,
@@ -331,6 +336,108 @@ function sendDiscordAlert(session, alertData) {
     req.end();
   } catch (err) {
     console.warn('[Discord Webhook Exception]', err.message);
+  }
+}
+
+function relayToStreamlabs(session, alertData) {
+  try {
+    if (!session || !session.settings) return;
+    const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+    if (!isPro) return;
+    const { streamlabsEnabled, streamlabsToken } = session.settings;
+    if (!streamlabsEnabled || !streamlabsToken) return;
+
+    const amt = parseFloat(alertData.amount) || 0;
+    const donor = alertData.senderName || 'Anonymous Supporter';
+    const note = alertData.note || 'Live UPI Superchat';
+
+    const payload = JSON.stringify({
+      name: donor,
+      identifier: `${donor.toLowerCase().replace(/[^a-z0-9]/g, '') || 'supporter'}@upi`,
+      amount: amt,
+      currency: 'INR',
+      message: note
+    });
+
+    const cleanToken = String(streamlabsToken).trim();
+    const options = {
+      hostname: 'streamlabs.com',
+      path: '/api/v1.0/donations',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cleanToken}`,
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        console.log(`[Streamlabs Relay][HTTP ${res.statusCode}]`, data.slice(0, 100));
+      });
+    });
+    req.on('error', (e) => {
+      console.warn('[Streamlabs Relay Error]', e.message);
+    });
+    req.write(payload);
+    req.end();
+  } catch (err) {
+    console.warn('[Streamlabs Relay Exception]', err.message);
+  }
+}
+
+function relayToStreamElements(session, alertData) {
+  try {
+    if (!session || !session.settings) return;
+    const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+    if (!isPro) return;
+    const { streamElementsEnabled, streamElementsToken, streamElementsChannelId } = session.settings;
+    if (!streamElementsEnabled || !streamElementsToken || !streamElementsChannelId) return;
+
+    const amt = parseFloat(alertData.amount) || 0;
+    const donor = alertData.senderName || 'Anonymous Supporter';
+    const note = alertData.note || 'Live UPI Superchat';
+
+    const payload = JSON.stringify({
+      user: {
+        username: donor
+      },
+      donation: {
+        amount: amt,
+        message: note,
+        currency: 'INR'
+      }
+    });
+
+    const channel = encodeURIComponent(String(streamElementsChannelId).trim());
+    const cleanToken = String(streamElementsToken).trim();
+    const options = {
+      hostname: 'api.streamelements.com',
+      path: `/kappa/v2/tips/${channel}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cleanToken}`,
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        console.log(`[StreamElements Relay][HTTP ${res.statusCode}]`, data.slice(0, 100));
+      });
+    });
+    req.on('error', (e) => {
+      console.warn('[StreamElements Relay Error]', e.message);
+    });
+    req.write(payload);
+    req.end();
+  } catch (err) {
+    console.warn('[StreamElements Relay Exception]', err.message);
   }
 }
 
@@ -661,6 +768,8 @@ app.post('/api/payment', (req, res) => {
   broadcastToStream(streamId, 'TABLE_UPDATED', record);
   broadcastToStream(streamId, 'STATS_UPDATED', getSummaryStats(session.history));
   sendDiscordAlert(session, record);
+  relayToStreamlabs(session, record);
+  relayToStreamElements(session, record);
 
   res.json({ success: true, payment: record, stream: streamId, isBelowMin, shouldSpeak, goalCurrent: session.settings.goalCurrent });
 });
@@ -711,6 +820,8 @@ app.post('/api/test', (req, res) => {
 
   broadcastToStream(streamId, 'NEW_PAYMENT', testPayment);
   sendDiscordAlert(session, testPayment);
+  relayToStreamlabs(session, testPayment);
+  relayToStreamElements(session, testPayment);
   res.json({ success: true, payment: testPayment, stream: streamId, goalCurrent: session.settings.goalCurrent });
 });
 
@@ -783,6 +894,28 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
 
   if (req.body.discordWebhookUrl !== undefined) session.settings.discordWebhookUrl = String(req.body.discordWebhookUrl).trim();
   if (req.body.discordWebhookEnabled !== undefined) session.settings.discordWebhookEnabled = Boolean(req.body.discordWebhookEnabled);
+
+  // Streamlabs & StreamElements Relay (PRO Feature Gated)
+  const isProPlan = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+  if (req.body.streamlabsEnabled !== undefined) {
+    if (isProPlan || !req.body.streamlabsEnabled) {
+      session.settings.streamlabsEnabled = Boolean(req.body.streamlabsEnabled);
+    }
+  }
+  if (req.body.streamlabsToken !== undefined) {
+    if (isProPlan) session.settings.streamlabsToken = String(req.body.streamlabsToken).trim();
+  }
+  if (req.body.streamElementsEnabled !== undefined) {
+    if (isProPlan || !req.body.streamElementsEnabled) {
+      session.settings.streamElementsEnabled = Boolean(req.body.streamElementsEnabled);
+    }
+  }
+  if (req.body.streamElementsToken !== undefined) {
+    if (isProPlan) session.settings.streamElementsToken = String(req.body.streamElementsToken).trim();
+  }
+  if (req.body.streamElementsChannelId !== undefined) {
+    if (isProPlan) session.settings.streamElementsChannelId = String(req.body.streamElementsChannelId).trim();
+  }
 
   if (req.body.goalTitle !== undefined) session.settings.goalTitle = String(req.body.goalTitle).trim();
   if (req.body.goalTarget !== undefined) session.settings.goalTarget = Math.max(1, parseFloat(req.body.goalTarget) || 1000);
@@ -949,6 +1082,112 @@ app.post('/api/test-discord', (req, res) => {
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
+});
+
+app.post('/api/test-streamlabs', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
+  const { session } = getSession(streamId);
+  const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+  if (!isPro) {
+    return res.status(403).json({ success: false, error: 'PRO_REQUIRED', message: 'Streamlabs Event Relay is an exclusive Creator Pro feature.' });
+  }
+
+  const token = (req.body && req.body.token) || (session.settings && session.settings.streamlabsToken);
+  if (!token) {
+    return res.status(400).json({ success: false, error: 'Please enter your Streamlabs API Socket Token or Access Token.' });
+  }
+
+  const payload = JSON.stringify({
+    name: 'DenAlerts Test',
+    identifier: 'test@upi',
+    amount: 100,
+    currency: 'INR',
+    message: 'Testing Streamlabs Relay from DenAlerts!'
+  });
+
+  const options = {
+    hostname: 'streamlabs.com',
+    path: '/api/v1.0/donations',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token.trim()}`,
+      'Content-Length': Buffer.byteLength(payload)
+    }
+  };
+
+  const slReq = https.request(options, (slRes) => {
+    let data = '';
+    slRes.on('data', c => data += c);
+    slRes.on('end', () => {
+      if (slRes.statusCode >= 200 && slRes.statusCode < 300) {
+        res.json({ success: true, message: 'Test alert forwarded to your Streamlabs setup!' });
+      } else {
+        res.status(400).json({ success: false, error: `Streamlabs returned HTTP ${slRes.statusCode}: ${data.slice(0, 120)}` });
+      }
+    });
+  });
+
+  slReq.on('error', (e) => {
+    res.status(500).json({ success: false, error: 'Could not connect to Streamlabs: ' + e.message });
+  });
+  slReq.write(payload);
+  slReq.end();
+});
+
+app.post('/api/test-streamelements', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
+  const { session } = getSession(streamId);
+  const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+  if (!isPro) {
+    return res.status(403).json({ success: false, error: 'PRO_REQUIRED', message: 'StreamElements Event Relay is an exclusive Creator Pro feature.' });
+  }
+
+  const token = (req.body && req.body.token) || (session.settings && session.settings.streamElementsToken);
+  const channel = (req.body && req.body.channelId) || (session.settings && session.settings.streamElementsChannelId);
+  if (!token || !channel) {
+    return res.status(400).json({ success: false, error: 'Please enter both your StreamElements Channel ID and JWT Token.' });
+  }
+
+  const payload = JSON.stringify({
+    user: {
+      username: 'DenAlerts Test'
+    },
+    donation: {
+      amount: 100,
+      message: 'Testing StreamElements Relay from DenAlerts!',
+      currency: 'INR'
+    }
+  });
+
+  const options = {
+    hostname: 'api.streamelements.com',
+    path: `/kappa/v2/tips/${encodeURIComponent(channel.trim())}`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token.trim()}`,
+      'Content-Length': Buffer.byteLength(payload)
+    }
+  };
+
+  const seReq = https.request(options, (seRes) => {
+    let data = '';
+    seRes.on('data', c => data += c);
+    seRes.on('end', () => {
+      if (seRes.statusCode >= 200 && seRes.statusCode < 300) {
+        res.json({ success: true, message: 'Test alert forwarded to your StreamElements setup!' });
+      } else {
+        res.status(400).json({ success: false, error: `StreamElements returned HTTP ${seRes.statusCode}: ${data.slice(0, 120)}` });
+      }
+    });
+  });
+
+  seReq.on('error', (e) => {
+    res.status(500).json({ success: false, error: 'Could not connect to StreamElements: ' + e.message });
+  });
+  seReq.write(payload);
+  seReq.end();
 });
 
 app.post('/api/upload-voice', (req, res) => {

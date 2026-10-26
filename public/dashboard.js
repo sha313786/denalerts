@@ -230,16 +230,25 @@
   fetch('/api/auth/me', {
     headers: { 'Authorization': 'Bearer ' + authToken }
   })
-  .then(r => r.json())
-  .then(data => {
-    if (!data.success || !data.user) {
-      localStorage.removeItem('denalerts_auth_token');
-      localStorage.removeItem('denalerts_user');
-      window.location.replace('/login');
-      return;
+  .then(async r => {
+    if (r.status === 401 || r.status === 403) {
+      const errData = await r.json().catch(() => ({}));
+      if (errData && errData.error && (errData.error.includes('expired') || errData.error.includes('invalid') || errData.error.includes('required'))) {
+        localStorage.removeItem('denalerts_auth_token');
+        localStorage.removeItem('denalerts_user');
+        window.location.replace('/login');
+        return null;
+      }
     }
+    return r.json().catch(() => null);
+  })
+  .then(data => {
+    if (!data || !data.success || !data.user) return;
     const user = data.user;
     localStorage.setItem('denalerts_user', JSON.stringify(user));
+    if (data.token) {
+      localStorage.setItem('denalerts_auth_token', data.token);
+    }
     streamId = user.streamerKey;
     pairingCode = user.pairingPin;
     if (userProfileBadge && userDisplayName) {
@@ -250,8 +259,8 @@
     updatePairingUI(pairingCode, streamId);
     updateOverlayUrls(streamId);
   })
-  .catch(() => {
-    // In case of temporary offline/network glitch, cached session remains
+  .catch((err) => {
+    console.warn('[Auth] Server verify glitch, maintaining cached session:', err);
   });
 
   // Sign Out Handler
@@ -818,7 +827,7 @@
   function saveSettings() {
     const activeModeEl = document.querySelector('input[name="ov-mode"]:checked');
     const payload = {
-      voiceSpeed: parseFloat(rangeSpeed ? rangeSpeed.value : 0.70) || 0.70,
+      voiceSpeed: parseFloat(rangeSpeed ? rangeSpeed.value : 1.00) || 1.00,
       voiceLanguage: selectVoiceLang ? selectVoiceLang.value : 'en-IN',
       voicePersona: selectVoicePersona ? selectVoicePersona.value : 'standard',
       voicePitch: parseFloat(rangePitch ? rangePitch.value : 1.00) || 1.00,
@@ -1264,7 +1273,7 @@
         const persona = PERSONA_CONFIG[personaKey] || PERSONA_CONFIG.standard;
         const userPitch = rangePitch ? parseFloat(rangePitch.value) : 1.00;
         const finalPitch = personaKey === 'custom' ? userPitch : persona.pitch;
-        const baseSpeed = parseFloat(rangeSpeed ? rangeSpeed.value : 0.70) || 0.70;
+        const baseSpeed = parseFloat(rangeSpeed ? rangeSpeed.value : 1.00) || 1.00;
         const finalSpeed = (baseSpeed * persona.speedMul).toFixed(2);
 
         const audio = new Audio(`/api/tts?text=${encodeURIComponent(sampleText)}&lang=${encodeURIComponent(config.lang)}&speed=${finalSpeed}`);
@@ -1750,6 +1759,17 @@
         if (data.settings) {
           currentSettings = { ...currentSettings, ...data.settings };
           renderActiveMedia(currentSettings);
+          const spd = data.settings.voiceSpeed !== undefined ? parseFloat(data.settings.voiceSpeed) : 1.00;
+          if (rangeSpeed) rangeSpeed.value = spd;
+          if (speedVal) speedVal.textContent = spd.toFixed(2) + 'x';
+          speedPresets.forEach(preset => {
+            preset.classList.toggle('active', parseFloat(preset.getAttribute('data-speed')) === spd);
+          });
+          if (inputMinAlert) inputMinAlert.value = data.settings.minAlertAmount || 10;
+          if (inputMinTts) inputMinTts.value = data.settings.minTtsAmount || 20;
+          if (checkCensor) checkCensor.checked = data.settings.censorProfanity !== false;
+          if (data.settings.voiceLanguage && selectVoiceLang) selectVoiceLang.value = data.settings.voiceLanguage;
+          if (data.settings.voicePersona && selectVoicePersona) selectVoicePersona.value = data.settings.voicePersona;
         }
         lastDashboardPolledTime = data.serverTime || Date.now();
       }
@@ -1835,8 +1855,12 @@
 
           if (msg.data.settings) {
             currentSettings = { ...currentSettings, ...msg.data.settings };
-            if (rangeSpeed) rangeSpeed.value = msg.data.settings.voiceSpeed || 0.70;
-            if (speedVal) speedVal.textContent = parseFloat(rangeSpeed ? rangeSpeed.value : 0.70).toFixed(2) + 'x';
+            const spd = msg.data.settings.voiceSpeed !== undefined ? parseFloat(msg.data.settings.voiceSpeed) : 1.00;
+            if (rangeSpeed) rangeSpeed.value = spd;
+            if (speedVal) speedVal.textContent = spd.toFixed(2) + 'x';
+            speedPresets.forEach(preset => {
+              preset.classList.toggle('active', parseFloat(preset.getAttribute('data-speed')) === spd);
+            });
             if (inputMinAlert) inputMinAlert.value = msg.data.settings.minAlertAmount || 10;
             if (inputMinTts) inputMinTts.value = msg.data.settings.minTtsAmount || 20;
             if (checkCensor) checkCensor.checked = msg.data.settings.censorProfanity !== false;

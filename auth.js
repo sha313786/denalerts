@@ -47,6 +47,8 @@ function saveAccounts() {
 
 loadAccounts();
 
+const AUTH_SECRET = process.env.ADMIN_SECRET_KEY || 'srb_denalerts_auth_secret_2026_supersecure';
+
 /**
  * Generate 6-digit numeric pairing PIN (e.g. 482910)
  */
@@ -55,10 +57,15 @@ function generatePairingPin() {
 }
 
 /**
- * Generate cryptographically secure auth token
+ * Generate cryptographically signed stateless session token (HMAC-SHA256)
  */
-function generateToken() {
-  return 'dat_' + crypto.randomBytes(32).toString('hex');
+function generateToken(payload = null) {
+  if (!payload) {
+    return 'dat_' + crypto.randomBytes(32).toString('hex');
+  }
+  const payloadStr = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', AUTH_SECRET).update(payloadStr).digest('base64url');
+  return `dat_${payloadStr}.${signature}`;
 }
 
 /**
@@ -137,12 +144,22 @@ function register({ email, password, channelName, defaultUpiId, preferredLang })
 
   const salt = crypto.randomBytes(16).toString('hex');
   const passwordHash = hashPassword(password, salt);
-  const token = generateToken();
   const now = Date.now();
   const expiresAt = now + (30 * 24 * 60 * 60 * 1000); // 30 days
+  const userId = 'usr_' + crypto.randomBytes(8).toString('hex');
+
+  const tokenPayload = {
+    id: userId,
+    email: cleanEmail,
+    channelName: cleanName,
+    streamerKey,
+    pairingPin,
+    exp: expiresAt
+  };
+  const token = generateToken(tokenPayload);
 
   const user = {
-    id: 'usr_' + crypto.randomBytes(8).toString('hex'),
+    id: userId,
     email: cleanEmail,
     channelName: cleanName,
     streamerKey,
@@ -195,9 +212,18 @@ function login({ email, password }) {
     throw new Error('Invalid email or password.');
   }
 
-  const token = generateToken();
   const now = Date.now();
   const expiresAt = now + (30 * 24 * 60 * 60 * 1000);
+
+  const tokenPayload = {
+    id: user.id,
+    email: user.email,
+    channelName: user.channelName,
+    streamerKey: user.streamerKey,
+    pairingPin: user.pairingPin,
+    exp: expiresAt
+  };
+  const token = generateToken(tokenPayload);
 
   // Prune expired tokens & add new
   user.tokens = (user.tokens || []).filter(t => t.expiresAt && t.expiresAt > now);
@@ -217,13 +243,53 @@ function login({ email, password }) {
 }
 
 /**
- * Authenticate via Session Token
+ * Authenticate via Session Token (Stateless Signed Token + In-Memory Fallback)
  */
 function verifyToken(token) {
   if (!token || typeof token !== 'string') return null;
   const cleanToken = token.trim();
   const now = Date.now();
 
+  // 1. Stateless HMAC-signed token (persists across all Vercel Lambdas, cold starts, and reboots)
+  if (cleanToken.startsWith('dat_') && cleanToken.includes('.')) {
+    try {
+      const stripped = cleanToken.slice(4);
+      const dotIdx = stripped.indexOf('.');
+      if (dotIdx !== -1) {
+        const payloadStr = stripped.slice(0, dotIdx);
+        const signature = stripped.slice(dotIdx + 1);
+        const expectedSig = crypto.createHmac('sha256', AUTH_SECRET).update(payloadStr).digest('base64url');
+        const sigBuf = Buffer.from(signature);
+        const expBuf = Buffer.from(expectedSig);
+        if (sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf)) {
+          const payload = JSON.parse(Buffer.from(payloadStr, 'base64url').toString('utf-8'));
+          if (payload && payload.exp && payload.exp > now) {
+            const foundUser = accounts.find(a => a.id === payload.id || (payload.email && a.email.toLowerCase() === payload.email.toLowerCase()));
+            if (foundUser) {
+              return {
+                id: foundUser.id,
+                email: foundUser.email,
+                channelName: foundUser.channelName,
+                streamerKey: foundUser.streamerKey,
+                pairingPin: foundUser.pairingPin
+              };
+            }
+            return {
+              id: payload.id,
+              email: payload.email,
+              channelName: payload.channelName,
+              streamerKey: payload.streamerKey,
+              pairingPin: payload.pairingPin
+            };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[Auth] Error decoding stateless token:', e.message);
+    }
+  }
+
+  // 2. Fallback to in-memory accounts array for legacy tokens
   const user = accounts.find(a => 
     a.tokens && a.tokens.some(t => t.token === cleanToken && t.expiresAt > now)
   );
@@ -297,5 +363,6 @@ module.exports = {
   getAccountByPairingPin,
   getAccountByStreamerKey,
   deleteAccount,
+  generateToken,
   getAllAccounts: () => accounts
 };

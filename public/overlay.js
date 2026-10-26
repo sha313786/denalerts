@@ -119,7 +119,7 @@
 
   // Live Alert Settings (Synced from Dashboard via WebSocket)
   let alertSettings = {
-    voiceSpeed: 0.70, // 0.70x default speed
+    voiceSpeed: 1.00, // 1.00x default speed
     voiceEnabled: true,
     voiceLanguage: 'en-IN',
     soundVolume: 0.9
@@ -282,7 +282,7 @@
     const persona = PERSONA_CONFIG[personaKey] || PERSONA_CONFIG.standard;
     const userPitch = alertSettings.voicePitch !== undefined ? parseFloat(alertSettings.voicePitch) : 1.00;
     const finalPitch = personaKey === 'custom' ? userPitch : persona.pitch;
-    const baseSpeed = parseFloat(alertSettings.voiceSpeed || 0.70) || 0.70;
+    const baseSpeed = parseFloat(alertSettings.voiceSpeed || 1.00) || 1.00;
     const finalSpeed = (baseSpeed * persona.speedMul).toFixed(2);
 
     duckChimeForVoice();

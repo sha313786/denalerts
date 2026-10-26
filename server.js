@@ -169,7 +169,7 @@ function getSession(streamId) {
     let data = {
       history: [],
       settings: {
-        voiceSpeed: 0.70,
+        voiceSpeed: 1.00,
         voiceEnabled: true,
         voiceLanguage: 'en-IN', // Regional language (en-IN, hi, ta, te, kn, ml, bn, mr, gu, pa, hinglish)
         voicePersona: 'standard', // Pro Custom Voices: 'standard' | 'own_voice' | 'esports_caster' | 'deep_bass' | 'anime' | 'cyber_robot' | 'custom'
@@ -712,7 +712,15 @@ app.get('/api/auth/me', (req, res) => {
   if (!user) {
     return res.status(401).json({ success: false, error: 'Session expired or invalid.' });
   }
-  res.json({ success: true, user });
+  const statelessToken = auth.generateToken ? auth.generateToken({
+    id: user.id,
+    email: user.email,
+    channelName: user.channelName,
+    streamerKey: user.streamerKey,
+    pairingPin: user.pairingPin,
+    exp: Date.now() + (30 * 24 * 60 * 60 * 1000)
+  }) : token;
+  res.json({ success: true, user, token: statelessToken });
 });
 
 app.post('/api/auth/logout', (req, res) => {

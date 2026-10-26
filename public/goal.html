@@ -706,10 +706,13 @@
       }
 
       fetchInitial();
-      connectWs();
+      const isServerlessDomain = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('denbooks.in');
+      if (!isServerlessDomain) {
+        connectWs();
+      }
 
-      // Background fallback poll every 3 seconds for continuous 100% sync
-      setInterval(fetchInitial, 3000);
+      // Background fallback poll every 2.5 seconds for continuous 100% sync
+      setInterval(fetchInitial, 2500);
     })();
   </script>
   <script src="/confetti.min.js" defer></script>

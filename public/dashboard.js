@@ -1345,7 +1345,7 @@
       const note = cleanDonorNote(rawNote);
 
       btnFireTest.disabled = true;
-      btnFireTest.innerHTML = '<span>Dispatching...</span>';
+      btnFireTest.innerHTML = '<span>Dispatching Alert...</span>';
 
       fetch(`/api/test?code=${encodeURIComponent(streamId)}`, {
         method: 'POST',
@@ -1354,13 +1354,33 @@
           'Authorization': 'Bearer ' + authToken
         },
         body: JSON.stringify({ amount, appName, senderName, note })
-      }).then(() => {
-        btnFireTest.innerHTML = '<span>Alert Sent to Stream!</span>';
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.payment) {
+          const payment = data.payment;
+          // Add to local history list immediately if not already present
+          if (!historyData.some(h => h.id === payment.id)) {
+            historyData.unshift(payment);
+            renderHistory(historyData);
+          }
+          // Immediately display on-screen toast popup & play audio chime
+          showDashboardToast(payment);
+
+          // Update statistics live
+          if (data.stats) {
+            updateStats(data.stats);
+          }
+          btnFireTest.innerHTML = '<span>Alert Triggered &amp; Sent!</span>';
+        } else {
+          btnFireTest.innerHTML = '<span>Alert Sent to Stream!</span>';
+        }
         setTimeout(() => {
           btnFireTest.disabled = false;
           btnFireTest.innerHTML = fireTestDefaultHtml;
-        }, 1500);
-      }).catch(err => {
+        }, 1800);
+      })
+      .catch(err => {
         alert('Error: ' + err.message);
         btnFireTest.disabled = false;
         btnFireTest.innerHTML = fireTestDefaultHtml;
@@ -1714,6 +1734,27 @@
   // 9. WebSocket Connection with HTTP Polling Fallback (for Vercel & Serverless)
   let dashboardPollingInterval = null;
   let wsFailStreak = 0;
+  let lastDashboardPolledTime = 0;
+
+  async function fetchInitialDashboardData() {
+    try {
+      const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=0`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.success) {
+        if (data.stats) updateStats(data.stats);
+        if (Array.isArray(data.history) && data.history.length > 0) {
+          historyData = data.history;
+          renderHistory(historyData);
+        }
+        if (data.settings) {
+          currentSettings = { ...currentSettings, ...data.settings };
+          renderActiveMedia(currentSettings);
+        }
+        lastDashboardPolledTime = data.serverTime || Date.now();
+      }
+    } catch (_) {}
+  }
 
   function startDashboardPolling() {
     if (dashboardPollingInterval) return;
@@ -1724,7 +1765,8 @@
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=0`);
+        const querySince = Math.max(0, lastDashboardPolledTime - 2000);
+        const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=${querySince}`);
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.success) {
@@ -1732,11 +1774,29 @@
             currentSettings = { ...currentSettings, ...data.settings };
             renderActiveMedia(currentSettings);
           }
+          if (data.stats) {
+            updateStats(data.stats);
+          }
+          if (Array.isArray(data.alerts) && data.alerts.length > 0) {
+            data.alerts.forEach(alertItem => {
+              if (!historyData.some(h => h.id === alertItem.id)) {
+                historyData.unshift(alertItem);
+                renderHistory(historyData);
+                showDashboardToast(alertItem);
+              }
+            });
+          } else if (Array.isArray(data.history) && (!historyData || historyData.length === 0)) {
+            historyData = data.history;
+            renderHistory(historyData);
+          }
+          if (data.serverTime) {
+            lastDashboardPolledTime = Math.max(lastDashboardPolledTime, data.serverTime);
+          }
         }
       } catch (_) {}
     };
     poll();
-    dashboardPollingInterval = setInterval(poll, 3000);
+    dashboardPollingInterval = setInterval(poll, 2000);
   }
 
   function connectWs() {
@@ -2309,5 +2369,11 @@
     });
   }
 
-  connectWs();
+  fetchInitialDashboardData();
+  const isServerlessDomain = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('denbooks.in');
+  if (isServerlessDomain) {
+    startDashboardPolling();
+  } else {
+    connectWs();
+  }
 })();

@@ -846,9 +846,8 @@ app.post('/api/test', (req, res) => {
   const numericAmount = parseFloat(amount || '100') || 100;
   const shouldSpeak = numericAmount >= (parseFloat(session.settings.minTtsAmount) || 1);
 
-  if (testGoal && session.settings.goalEnabled !== false) {
+  if (session.settings.goalEnabled !== false) {
     session.settings.goalCurrent = (parseFloat(session.settings.goalCurrent) || 0) + numericAmount;
-    saveSession(streamId);
     broadcastToStream(streamId, 'GOAL_UPDATED', {
       title: session.settings.goalTitle,
       target: session.settings.goalTarget,
@@ -875,11 +874,22 @@ app.post('/api/test', (req, res) => {
     shouldSpeak
   };
 
+  session.history.push(testPayment);
+  saveSession(streamId);
+
   broadcastToStream(streamId, 'NEW_PAYMENT', testPayment);
+  broadcastToStream(streamId, 'TABLE_UPDATED', testPayment);
+  broadcastToStream(streamId, 'STATS_UPDATED', getSummaryStats(session.history));
   sendDiscordAlert(session, testPayment);
   relayToStreamlabs(session, testPayment);
   relayToStreamElements(session, testPayment);
-  res.json({ success: true, payment: testPayment, stream: streamId, goalCurrent: session.settings.goalCurrent });
+  res.json({
+    success: true,
+    payment: testPayment,
+    stream: streamId,
+    stats: getSummaryStats(session.history),
+    goalCurrent: session.settings.goalCurrent
+  });
 });
 
 app.post('/api/replay', (req, res) => {
@@ -1926,6 +1936,8 @@ app.get('/api/poll-alerts', (req, res) => {
     success: true,
     streamId,
     alerts,
+    history: (session.history || []).slice(-50).reverse(),
+    stats: getSummaryStats(session.history || []),
     settings: session.settings,
     serverTime: Date.now()
   });

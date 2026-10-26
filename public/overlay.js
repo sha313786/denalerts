@@ -521,14 +521,18 @@
     }, DISPLAY_DURATION_MS);
   }
 
+  const seenPaymentIds = new Set();
   function enqueueAlert(payment) {
+    if (!payment || !payment.id) return;
+    if (seenPaymentIds.has(payment.id)) return;
+    seenPaymentIds.add(payment.id);
     alertQueue.push(payment);
     processQueue();
   }
 
   // Robust WebSocket Connection with HTTP Polling Fallback (for Vercel & Serverless)
   let pollingInterval = null;
-  let lastSeenTimestamp = Date.now();
+  let lastSeenTimestamp = Date.now() - 3000;
   let wsFailCount = 0;
 
   function startPollingFallback(streamId) {
@@ -545,7 +549,8 @@
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=${lastSeenTimestamp}`);
+        const querySince = Math.max(0, lastSeenTimestamp - 3000);
+        const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=${querySince}`);
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.success) {
@@ -566,7 +571,7 @@
     };
 
     poll();
-    pollingInterval = setInterval(poll, 1600);
+    pollingInterval = setInterval(poll, 1200);
   }
 
   function connectWebSocket() {
@@ -668,5 +673,13 @@
   window.addEventListener('click', initAudio);
   window.addEventListener('keydown', initAudio);
 
-  connectWebSocket();
+  const urlParams = new URLSearchParams(window.location.search);
+  const streamId = (urlParams.get('code') || urlParams.get('stream') || urlParams.get('streamer') || 'default').toLowerCase().trim();
+  const isServerlessHost = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('denbooks.in');
+
+  if (isServerlessHost) {
+    startPollingFallback(streamId);
+  } else {
+    connectWebSocket();
+  }
 })();

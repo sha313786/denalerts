@@ -13,16 +13,28 @@ const auth = require('./auth');
 const discordBot = require('./discord_bot');
 
 const PORT = process.env.PORT || 3333;
-const DATA_DIR = path.join(__dirname, 'data');
+const IS_VERCEL = !!process.env.VERCEL;
+const DATA_DIR = IS_VERCEL ? path.join(os.tmpdir(), 'denalerts_data') : path.join(__dirname, 'data');
 const SESSIONS_DIR = path.join(DATA_DIR, 'sessions');
+const BUNDLED_DATA_DIR = path.join(__dirname, 'data');
+const BUNDLED_SESSIONS_DIR = path.join(BUNDLED_DATA_DIR, 'sessions');
 
 const app = express();
 app.get(['/health', '/healthz'], (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() }));
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+let wss = null;
+try {
+  wss = new WebSocket.Server({ server });
+} catch (e) {
+  console.warn('[WebSocket] Warning initializing WebSocket server:', e.message);
+}
 
-if (!fs.existsSync(SESSIONS_DIR)) {
-  fs.mkdirSync(SESSIONS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(SESSIONS_DIR)) {
+    fs.mkdirSync(SESSIONS_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('[Storage] Warning creating sessions dir:', e.message);
 }
 
 // In-memory sessions map
@@ -120,23 +132,27 @@ function cleanId(raw) {
 // Pairing PIN Mapping: 6-Digit PIN <-> Account StreamId
 const pairingCodeToStreamId = new Map();
 
-// Auto-scan existing session files for custom pairing codes
-try {
-  if (fs.existsSync(SESSIONS_DIR)) {
-    const sessionFiles = fs.readdirSync(SESSIONS_DIR);
-    sessionFiles.forEach((file) => {
-      if (file.endsWith('.json')) {
-        const sid = file.replace('.json', '');
-        try {
-          const content = JSON.parse(fs.readFileSync(path.join(SESSIONS_DIR, file), 'utf-8'));
-          if (content.pairingCode) {
-            pairingCodeToStreamId.set(String(content.pairingCode).toLowerCase(), sid);
-          }
-        } catch (_) {}
-      }
-    });
-  }
-} catch (_) {}
+function scanSessionsDir(dir) {
+  try {
+    if (fs.existsSync(dir)) {
+      const sessionFiles = fs.readdirSync(dir);
+      sessionFiles.forEach((file) => {
+        if (file.endsWith('.json')) {
+          const sid = file.replace('.json', '');
+          try {
+            const content = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8'));
+            if (content.pairingCode) {
+              pairingCodeToStreamId.set(String(content.pairingCode).toLowerCase(), sid);
+            }
+          } catch (_) {}
+        }
+      });
+    }
+  } catch (_) {}
+}
+
+scanSessionsDir(BUNDLED_SESSIONS_DIR);
+scanSessionsDir(SESSIONS_DIR);
 
 function resolveStreamId(raw) {
   const safe = cleanId(raw);
@@ -206,8 +222,10 @@ function getSession(streamId) {
       }
     };
     try {
-      if (fs.existsSync(sessionFile)) {
-        const loaded = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      const bundledSessionFile = path.join(BUNDLED_SESSIONS_DIR, `${safeId}.json`);
+      const targetSessionFile = fs.existsSync(sessionFile) ? sessionFile : (fs.existsSync(bundledSessionFile) ? bundledSessionFile : null);
+      if (targetSessionFile) {
+        const loaded = JSON.parse(fs.readFileSync(targetSessionFile, 'utf-8'));
         data = { 
           ...data, 
           ...loaded, 
@@ -477,6 +495,7 @@ function relayToStreamElements(session, alertData) {
 }
 
 function broadcastToStream(streamId, type, data) {
+  if (!wss || !wss.clients) return;
   const message = JSON.stringify({ type, data, timestamp: Date.now() });
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN && client.streamId === streamId) {
@@ -577,45 +596,47 @@ try {
   });
 } catch (_) {}
 
-wss.on('connection', (ws, req) => {
-  const parsed = url.parse(req.url, true);
-  let rawId = parsed.query.code || parsed.query.stream || parsed.query.streamer || parsed.query.channel;
+if (wss) {
+  wss.on('connection', (ws, req) => {
+    const parsed = url.parse(req.url, true);
+    let rawId = parsed.query.code || parsed.query.stream || parsed.query.streamer || parsed.query.channel;
 
-  // Support secure authenticated token in WS query
-  if (parsed.query.token) {
-    const verified = auth.verifyToken(parsed.query.token);
-    if (verified && verified.streamerKey) {
-      rawId = verified.streamerKey;
+    // Support secure authenticated token in WS query
+    if (parsed.query.token) {
+      const verified = auth.verifyToken(parsed.query.token);
+      if (verified && verified.streamerKey) {
+        rawId = verified.streamerKey;
+      }
     }
-  }
 
-  if (!rawId || String(rawId).trim().length === 0 || String(rawId).trim().toLowerCase() === 'default') {
-    rawId = String(Math.floor(100000 + Math.random() * 900000));
-  }
-  const streamId = resolveStreamId(rawId);
-  ws.streamId = streamId;
-
-  const { session } = getSession(streamId);
-
-  ws.send(JSON.stringify({
-    type: 'INIT',
-    data: {
-      streamId,
-      pairingCode: session.pairingCode,
-      accountName: session.accountName || streamId,
-      stats: getSummaryStats(session.history),
-      settings: session.settings,
-      subscription: session.subscription || { plan: 'pro_trial', status: 'active', tierName: 'Creator Pro' },
-      recent: session.history.slice(-20).reverse()
+    if (!rawId || String(rawId).trim().length === 0 || String(rawId).trim().toLowerCase() === 'default') {
+      rawId = String(Math.floor(100000 + Math.random() * 900000));
     }
-  }));
+    const streamId = resolveStreamId(rawId);
+    ws.streamId = streamId;
 
-  const pingInterval = setInterval(() => {
-    if (ws.readyState === WebSocket.OPEN) ws.ping();
-  }, 25000);
+    const { session } = getSession(streamId);
 
-  ws.on('close', () => clearInterval(pingInterval));
-});
+    ws.send(JSON.stringify({
+      type: 'INIT',
+      data: {
+        streamId,
+        pairingCode: session.pairingCode,
+        accountName: session.accountName || streamId,
+        stats: getSummaryStats(session.history),
+        settings: session.settings,
+        subscription: session.subscription || { plan: 'pro_trial', status: 'active', tierName: 'Creator Pro' },
+        recent: session.history.slice(-20).reverse()
+      }
+    }));
+
+    const pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.ping();
+    }, 25000);
+
+    ws.on('close', () => clearInterval(pingInterval));
+  });
+}
 
 // ==========================================
 // User Authentication Endpoints (Real scrypt)
@@ -1416,9 +1437,11 @@ app.get('/api/info', (req, res) => {
   const { session } = getSession(streamId);
   const localIps = getLocalIpAddresses();
   let streamClientCount = 0;
-  wss.clients.forEach((c) => {
-    if (c.streamId === streamId) streamClientCount++;
-  });
+  if (wss && wss.clients) {
+    wss.clients.forEach((c) => {
+      if (c.streamId === streamId) streamClientCount++;
+    });
+  }
   const rawCode = req.query.code || session.pairingCode || streamId;
   const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
   const proto = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
@@ -1435,8 +1458,8 @@ app.get('/api/info', (req, res) => {
     endpoint: isCloud ? `${proto}://${host}/api/payment?code=${session.pairingCode || streamId}` : `http://${localIps[0]}:${PORT}/api/payment?code=${session.pairingCode || streamId}`,
     cloudUrl: isCloud ? `${proto}://${host}` : null,
     localIps,
-    connectedClients: wss.clients.size,
-    activeStreamIds: Array.from(wss.clients).map(c => c.streamId)
+    connectedClients: (wss && wss.clients) ? wss.clients.size : 0,
+    activeStreamIds: (wss && wss.clients) ? Array.from(wss.clients).map(c => c.streamId) : []
   });
 });
 
@@ -1892,13 +1915,33 @@ app.get('/tutorial', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 app.get('/refund-and-cancellation', (req, res) => res.sendFile(path.join(__dirname, 'public', 'refund-and-cancellation.html')));
 app.get('/refund', (req, res) => res.sendFile(path.join(__dirname, 'public', 'refund-and-cancellation.html')));
 
-server.listen(PORT, () => {
-  console.log('========================================================');
-  console.log('   🔴 LIVE STREAM UPI ALERTS RUNNING                   ');
-  console.log('========================================================');
-  console.log(` > Dashboard:      http://localhost:${PORT}/dashboard`);
-  console.log(` > Stream Overlay: http://localhost:${PORT}/overlay`);
-  console.log(` > Goal Widget:    http://localhost:${PORT}/goal`);
-  console.log(` > Master Admin:   http://localhost:${PORT}/admin`);
-  console.log('========================================================');
+// Polling fallback endpoint for environments without persistent WebSockets (e.g. Vercel Serverless or proxy firewalls)
+app.get('/api/poll-alerts', (req, res) => {
+  const streamId = resolveStreamId(req.query.code || req.query.token);
+  const { session } = getSession(streamId);
+  const since = parseInt(req.query.since || '0', 10);
+
+  const alerts = (session.history || []).filter(item => (item.timestamp || 0) > since);
+  res.json({
+    success: true,
+    streamId,
+    alerts,
+    settings: session.settings,
+    serverTime: Date.now()
+  });
 });
+
+if (require.main === module && !process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log('========================================================');
+    console.log('   🔴 LIVE STREAM UPI ALERTS RUNNING                   ');
+    console.log('========================================================');
+    console.log(` > Dashboard:      http://localhost:${PORT}/dashboard`);
+    console.log(` > Stream Overlay: http://localhost:${PORT}/overlay`);
+    console.log(` > Goal Widget:    http://localhost:${PORT}/goal`);
+    console.log(` > Master Admin:   http://localhost:${PORT}/admin`);
+    console.log('========================================================');
+  });
+}
+
+module.exports = app;

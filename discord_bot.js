@@ -33,18 +33,18 @@ function addRole(guildId, userId, roleId) {
   });
 }
 
-function sendChannelMessage(channelId, content, embeds = []) {
+function sendChannelMessage(channelId, content) {
   return new Promise((resolve, reject) => {
-    const payload = JSON.stringify({ content, embeds });
+    const data = JSON.stringify({ content });
     const req = https.request({
       hostname: 'discord.com',
       path: `/api/v10/channels/${channelId}/messages`,
       method: 'POST',
       headers: {
         'Authorization': 'Bot ' + BOT_TOKEN,
-        'User-Agent': 'DiscordBot (DenAlerts, 1.0)',
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload)
+        'User-Agent': 'DiscordBot (DenAlerts, 1.0)',
+        'Content-Length': Buffer.byteLength(data)
       }
     }, res => {
       let b = '';
@@ -52,187 +52,199 @@ function sendChannelMessage(channelId, content, embeds = []) {
       res.on('end', () => resolve({ status: res.statusCode, body: b }));
     });
     req.on('error', reject);
-    req.write(payload);
+    req.write(data);
     req.end();
   });
 }
 
-function createDMChannel(userId) {
-  return new Promise((resolve) => {
-    const payload = JSON.stringify({ recipient_id: userId });
-    const req = https.request({
+function sendDirectMessage(userId, content) {
+  return new Promise((resolve, reject) => {
+    // 1. Create DM channel
+    const dmData = JSON.stringify({ recipient_id: userId });
+    const dmReq = https.request({
       hostname: 'discord.com',
-      path: '/api/v10/users/@me/channels',
+      path: `/api/v10/users/@me/channels`,
       method: 'POST',
       headers: {
         'Authorization': 'Bot ' + BOT_TOKEN,
-        'User-Agent': 'DiscordBot (DenAlerts, 1.0)',
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload)
+        'User-Agent': 'DiscordBot (DenAlerts, 1.0)',
+        'Content-Length': Buffer.byteLength(dmData)
       }
-    }, res => {
-      let b = '';
-      res.on('data', c => b += c);
-      res.on('end', () => {
+    }, dmRes => {
+      let dmBody = '';
+      dmRes.on('data', c => dmBody += c);
+      dmRes.on('end', () => {
         try {
-          const parsed = JSON.parse(b);
-          if (res.statusCode >= 200 && res.statusCode < 300 && parsed.id) {
-            resolve(parsed.id);
+          const dmChannel = JSON.parse(dmBody);
+          if (dmChannel.id) {
+            // 2. Send message to DM channel
+            sendChannelMessage(dmChannel.id, content).then(resolve).catch(reject);
           } else {
-            resolve(null);
+            resolve({ status: dmRes.statusCode, body: dmBody });
           }
-        } catch (_) {
-          resolve(null);
+        } catch (e) {
+          reject(e);
         }
       });
     });
-    req.on('error', () => resolve(null));
-    req.write(payload);
-    req.end();
+    dmReq.on('error', reject);
+    dmReq.write(dmData);
+    dmReq.end();
   });
 }
 
-async function sendDirectMessage(userId, content, embeds = []) {
-  try {
-    const dmChannelId = await createDMChannel(userId);
-    if (!dmChannelId) {
-      console.warn(`[Discord Bot] Could not open DM channel with user ${userId} (DMs might be closed).`);
-      return { status: 403, error: 'Could not open DM channel' };
-    }
-    return await sendChannelMessage(dmChannelId, content, embeds);
-  } catch (err) {
-    console.warn(`[Discord Bot] Failed to send DM to user ${userId}:`, err.message);
-    return { status: 500, error: err.message };
-  }
-}
-
+// Gateway connection
 let ws = null;
 let heartbeatInterval = null;
-let sequenceNumber = null;
+let lastSequence = null;
 let isReconnecting = false;
 
 function connectGateway() {
-  if (!BOT_TOKEN || isReconnecting) return;
+  if (!BOT_TOKEN) return;
+  if (isReconnecting) return;
+
   try {
     ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
 
     ws.on('open', () => {
       console.log('[Discord Bot] Connected to Discord Gateway.');
-      isReconnecting = false;
     });
 
-    ws.on('message', async (data) => {
+    ws.on('message', (data) => {
       try {
-        const msg = JSON.parse(data.toString());
-        if (msg.s) sequenceNumber = msg.s;
+        const payload = JSON.parse(data);
+        const { op, d, s, t } = payload;
 
-        // Opcode 10: Hello (Begin Heartbeat & Identify)
-        if (msg.op === 10) {
-          const interval = msg.d.heartbeat_interval;
-          if (heartbeatInterval) clearInterval(heartbeatInterval);
-          heartbeatInterval = setInterval(() => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ op: 1, d: sequenceNumber }));
-            }
-          }, interval);
+        if (s !== null) lastSequence = s;
 
-          // Identify with GUILDS (1) and GUILD_MEMBERS (2) intents
-          ws.send(JSON.stringify({
-            op: 2,
-            d: {
-              token: BOT_TOKEN,
-              intents: 3, // GUILDS | GUILD_MEMBERS
-              properties: {
-                os: 'windows',
-                browser: 'denalerts',
-                device: 'denalerts'
-              }
-            }
-          }));
+        // Opcode 10: Hello
+        if (op === 10) {
+          const { heartbeat_interval } = d;
+          startHeartbeat(heartbeat_interval);
+          identify();
         }
 
-        // Opcode 0: Dispatch Events
-        if (msg.op === 0) {
-          if (msg.t === 'READY') {
-            console.log(`[Discord Bot] Logged in as ${msg.d.user.username}#${msg.d.user.discriminator} (ID: ${msg.d.user.id}). Auto-role active for 'Upi Alerts'!`);
-          }
-
-          // Member Joined Guild Event
-          if (msg.t === 'GUILD_MEMBER_ADD') {
-            const member = msg.d;
-            const guildId = member.guild_id;
-            const user = member.user;
-
-            if (guildId === GUILD_ID && user) {
-              console.log(`[Discord Bot] New member joined: ${user.username} (${user.id}). Auto-granting 'Upi Alerts' role...`);
-              const res = await addRole(guildId, user.id, ROLE_UPI_ALERTS);
-
-              if (res.status === 204) {
-                console.log(`[Discord Bot] Successfully granted 'Upi Alerts' role to ${user.username} (${user.id}).`);
-                
-                // Send welcome message directly to the new joiner's DM (prevents channel spam)
-                const dmText = `👋 **Welcome to SRB Studio, ${user.username}!**\n\n` +
-                  `You have been automatically assigned the **Upi Alerts** role.\n\n` +
-                  `🚀 **Get Started with DenAlerts (Live UPI Stream Alerts):**\n` +
-                  `• **Setup Guide:** Check <#${CHANNEL_GETTING_STARTED}> in our server\n` +
-                  `• **Community & Support:** Ask questions in <#${CHANNEL_SUPPORT}>\n` +
-                  `• **Creator Dashboard:** https://alerts.denbooks.in/dashboard\n\n` +
-                  `Need help? Join the voice channels in the server anytime! 🎙️`;
-
-                const dmRes = await sendDirectMessage(user.id, dmText);
-                if (dmRes && (dmRes.status === 200 || dmRes.status === 201)) {
-                  console.log(`[Discord Bot] Welcome DM successfully delivered to ${user.username} (${user.id}).`);
-                } else {
-                  console.log(`[Discord Bot] Note: ${user.username} has direct messages disabled from server members.`);
-                }
-              } else {
-                console.error(`[Discord Bot] Failed to assign role to ${user.username}:`, res.status, res.body);
-              }
-            }
-          }
+        // Opcode 11: Heartbeat ACK
+        if (op === 11) {
+          // ACK received
         }
 
-        // Opcode 1: Heartbeat requested by Discord
-        if (msg.op === 1) {
-          ws.send(JSON.stringify({ op: 1, d: sequenceNumber }));
+        // Opcode 0: Dispatch
+        if (op === 0) {
+          handleDispatch(t, d);
         }
 
-        // Opcode 7: Reconnect request
-        if (msg.op === 7) {
-          console.log('[Discord Bot] Received Reconnect request from Gateway.');
+        // Opcode 7 or 9: Reconnect or Invalid Session
+        if (op === 7 || op === 9) {
           reconnect();
         }
-
-        // Opcode 9: Invalid Session
-        if (msg.op === 9) {
-          console.log('[Discord Bot] Gateway Session Invalid. Re-identifying...');
-          setTimeout(connectGateway, 2000);
-        }
-
-      } catch (err) {
-        console.warn('[Discord Bot] Message parse error:', err.message);
+      } catch (e) {
+        console.error('[Discord Bot] Gateway parsing error:', e);
       }
     });
 
     ws.on('close', (code, reason) => {
-      console.warn(`[Discord Bot] Gateway connection closed (${code}): ${reason}. Reconnecting in 5s...`);
-      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      console.warn(`[Discord Bot] Gateway closed (${code}: ${reason}). Reconnecting...`);
+      stopHeartbeat();
       reconnect();
     });
 
     ws.on('error', (err) => {
-      console.warn('[Discord Bot] Gateway error:', err.message);
+      console.error('[Discord Bot] Gateway error:', err.message);
     });
 
-  } catch (e) {
-    console.error('[Discord Bot] Setup error:', e.message);
+  } catch (err) {
+    console.error('[Discord Bot] Connection exception:', err);
     reconnect();
+  }
+}
+
+function startHeartbeat(intervalMs) {
+  stopHeartbeat();
+  heartbeatInterval = setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ op: 1, d: lastSequence }));
+    }
+  }, intervalMs);
+}
+
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}
+
+function identify() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  // Intents: GUILDS (1 << 0) | GUILD_MEMBERS (1 << 1) = 1 | 2 = 3
+  const identifyPayload = {
+    op: 2,
+    d: {
+      token: BOT_TOKEN,
+      intents: 3,
+      properties: {
+        os: 'linux',
+        browser: 'DenAlerts',
+        device: 'DenAlerts'
+      }
+    }
+  };
+  ws.send(JSON.stringify(identifyPayload));
+}
+
+function handleDispatch(eventName, data) {
+  // READY event
+  if (eventName === 'READY') {
+    console.log(`[Discord Bot] Logged in as ${data.user.username}#${data.user.discriminator} (ID: ${data.user.id}). Auto-role active for 'Upi Alerts'!`);
+  }
+
+  // GUILD_MEMBER_ADD event: User joins the Discord Server
+  if (eventName === 'GUILD_MEMBER_ADD') {
+    const member = data;
+    const guildId = member.guild_id || GUILD_ID;
+    const userId = member.user.id;
+    const username = member.user.username;
+
+    console.log(`[Discord Bot] New Member Joined: ${username} (${userId})`);
+
+    // 1. Assign "Upi Alerts" Role Automatically
+    addRole(guildId, userId, ROLE_UPI_ALERTS)
+      .then(res => {
+        if (res.status === 204) {
+          console.log(`[Discord Bot] Successfully granted role 'Upi Alerts' (${ROLE_UPI_ALERTS}) to ${username}`);
+        } else {
+          console.warn(`[Discord Bot] Failed to grant role (HTTP ${res.status}):`, res.body);
+        }
+      })
+      .catch(err => {
+        console.error(`[Discord Bot] Error assigning role to ${username}:`, err);
+      });
+
+    // 2. Send Welcome DM with Getting Started Guide
+    const welcomeMsg = `👋 **Welcome to SRB STUDIOS, ${username}!**\n\n` +
+      `You have been automatically granted the **Upi Alerts** role! 🎉\n\n` +
+      `🚀 **Get Started with DenAlerts (Live UPI Stream Alerts):**\n` +
+      `  • **Setup Guide:** Check <#${CHANNEL_GETTING_STARTED}> in our server\n` +
+      `  • **Support:** If you need any assistance, reach out in <#${CHANNEL_SUPPORT}>\n` +
+      `  • **Cockpit & Dashboard:** https://alerts.denbooks.in\n\n` +
+      `Happy Streaming! 🎮⚡`;
+
+    sendDirectMessage(userId, welcomeMsg)
+      .then(res => {
+        console.log(`[Discord Bot] Welcome DM sent to ${username}`);
+      })
+      .catch(err => {
+        console.warn(`[Discord Bot] Could not send welcome DM to ${username} (DMs might be closed):`, err.message);
+      });
   }
 }
 
 function reconnect() {
   if (isReconnecting) return;
   isReconnecting = true;
+  stopHeartbeat();
   if (ws) {
     try { ws.terminate(); } catch (_) {}
   }
@@ -242,8 +254,10 @@ function reconnect() {
   }, 5000);
 }
 
-// Start bot
-connectGateway();
+// Start bot (disabled in serverless lambda environments like Vercel)
+if (!process.env.VERCEL) {
+  connectGateway();
+}
 
 module.exports = {
   addRole,

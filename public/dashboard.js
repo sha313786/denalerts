@@ -1711,18 +1711,51 @@
     }, 4500);
   }
 
-  // 9. WebSocket Connection
+  // 9. WebSocket Connection with HTTP Polling Fallback (for Vercel & Serverless)
+  let dashboardPollingInterval = null;
+  let wsFailStreak = 0;
+
+  function startDashboardPolling() {
+    if (dashboardPollingInterval) return;
+    if (connStatus) {
+      connStatus.className = 'status-badge connected';
+      connStatus.innerHTML = `<span class="status-dot" style="background:#10b981;"></span><span class="status-text">Cloud Sync</span>`;
+    }
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=0`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.success) {
+          if (data.settings) {
+            currentSettings = { ...currentSettings, ...data.settings };
+            renderActiveMedia(currentSettings);
+          }
+        }
+      } catch (_) {}
+    };
+    poll();
+    dashboardPollingInterval = setInterval(poll, 3000);
+  }
+
   function connectWs() {
     const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProto}//${host}/?token=${encodeURIComponent(authToken)}&code=${encodeURIComponent(streamId)}`;
-    ws = new WebSocket(wsUrl);
+    try {
+      ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => {
-      if (connStatus) {
-        connStatus.className = 'status-badge connected';
-        connStatus.innerHTML = `<span class="status-dot"></span><span class="status-text">Connected</span>`;
-      }
-    };
+      ws.onopen = () => {
+        wsFailStreak = 0;
+        if (dashboardPollingInterval) {
+          clearInterval(dashboardPollingInterval);
+          dashboardPollingInterval = null;
+        }
+        if (connStatus) {
+          connStatus.className = 'status-badge connected';
+          connStatus.innerHTML = `<span class="status-dot"></span><span class="status-text">Connected</span>`;
+        }
+      };
 
     ws.onmessage = (event) => {
       try {
@@ -1887,13 +1920,27 @@
     };
 
     ws.onclose = () => {
-      if (connStatus) {
+      wsFailStreak++;
+      if (wsFailStreak >= 2) {
+        startDashboardPolling();
+      } else if (connStatus) {
         connStatus.className = 'status-badge connecting';
         connStatus.innerHTML = `<span class="status-dot"></span><span class="status-text">Reconnecting...</span>`;
       }
-      setTimeout(connectWs, 3000);
+      setTimeout(connectWs, 4000);
     };
+
+    ws.onerror = () => {
+      wsFailStreak++;
+      if (wsFailStreak >= 2) {
+        startDashboardPolling();
+      }
+    };
+  } catch (_) {
+    startDashboardPolling();
+    setTimeout(connectWs, 5000);
   }
+}
 
   // Studio Tab Switching (De-congested Column Left)
   const studioTabs = document.querySelectorAll('.studio-tab');

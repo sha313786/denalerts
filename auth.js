@@ -1,12 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 
-const ACCOUNTS_FILE = path.join(__dirname, 'data', 'accounts.json');
+const IS_VERCEL = !!process.env.VERCEL;
+const DATA_DIR = IS_VERCEL ? path.join(os.tmpdir(), 'denalerts_data') : path.join(__dirname, 'data');
+const BUNDLED_ACCOUNTS_FILE = path.join(__dirname, 'data', 'accounts.json');
+const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
 
-// Ensure data directory exists
-if (!fs.existsSync(path.dirname(ACCOUNTS_FILE))) {
-  fs.mkdirSync(path.dirname(ACCOUNTS_FILE), { recursive: true });
+// Ensure data directory exists safely
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('[Auth] Warning creating data dir:', e.message);
 }
 
 // In-memory accounts cache
@@ -16,6 +24,9 @@ function loadAccounts() {
   try {
     if (fs.existsSync(ACCOUNTS_FILE)) {
       accounts = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, 'utf-8'));
+    } else if (fs.existsSync(BUNDLED_ACCOUNTS_FILE)) {
+      accounts = JSON.parse(fs.readFileSync(BUNDLED_ACCOUNTS_FILE, 'utf-8'));
+      saveAccounts();
     } else {
       accounts = [];
       saveAccounts();
@@ -36,67 +47,74 @@ function saveAccounts() {
 
 loadAccounts();
 
-// Cryptographic helpers using Node built-in crypto (scrypt + timingSafeEqual)
+/**
+ * Generate 6-digit numeric pairing PIN (e.g. 482910)
+ */
+function generatePairingPin() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+/**
+ * Generate cryptographically secure auth token
+ */
+function generateToken() {
+  return 'dat_' + crypto.randomBytes(32).toString('hex');
+}
+
+/**
+ * Hash password with per-user salt using scrypt
+ */
 function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString('hex');
 }
 
+/**
+ * Verify password against salt + hash
+ */
 function verifyPassword(password, salt, storedHash) {
-  try {
-    const computed = crypto.scryptSync(password, salt, 64).toString('hex');
-    const a = Buffer.from(computed, 'hex');
-    const b = Buffer.from(storedHash, 'hex');
-    if (a.length !== b.length) return false;
-    return crypto.timingSafeEqual(a, b);
-  } catch (_) {
-    return false;
-  }
-}
-
-function generateToken() {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-function generatePairingPin() {
-  // Generate unique 6-digit PIN
-  for (let attempt = 0; attempt < 100; attempt++) {
-    const pin = String(Math.floor(100000 + Math.random() * 900000));
-    const exists = accounts.some(a => a.pairingPin === pin);
-    if (!exists) return pin;
-  }
-  return String(Date.now()).slice(-6);
-}
-
-function sanitizeId(str) {
-  return String(str || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').trim();
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(storedHash, 'hex'));
 }
 
 /**
- * Register a new streamer account
+ * Clean & normalize channel/streamer name into a safe alphanumeric key
  */
-function register({ email, password, channelName }) {
-  if (!email || typeof email !== 'string') {
-    throw new Error('Valid email address is required.');
+function sanitizeId(name) {
+  return String(name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'streamer';
+}
+
+/**
+ * Register a new user account
+ */
+function register({ email, password, channelName, defaultUpiId, preferredLang }) {
+  if (!email || !password || !channelName) {
+    throw new Error('Email, password, and channel name are required.');
   }
-  const cleanEmail = email.trim().toLowerCase();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(cleanEmail)) {
+
+  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanName = String(channelName).trim();
+
+  // Basic email validation
+  if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
     throw new Error('Please enter a valid email address.');
   }
 
-  if (!password || typeof password !== 'string' || password.length < 6) {
-    throw new Error('Password must be at least 6 characters.');
+  if (password.length < 6) {
+    throw new Error('Password must be at least 6 characters long.');
   }
 
-  const existing = accounts.find(a => a.email.toLowerCase() === cleanEmail);
-  if (existing) {
-    throw new Error('An account with this email address already exists. Please sign in instead.');
+  // Check uniqueness
+  if (accounts.some(a => a.email.toLowerCase() === cleanEmail)) {
+    throw new Error('An account with this email already exists.');
   }
 
-  const cleanName = String(channelName || '').trim() || cleanEmail.split('@')[0];
-  let baseId = sanitizeId(cleanName) || 'creator';
-
-  // Check if baseId is available or if it matches an existing unlinked session
+  // Generate unique streamerKey (channelName sanitized)
+  const baseId = sanitizeId(cleanName);
   let streamerKey = baseId;
   let counter = 1;
   while (accounts.some(a => a.streamerKey === streamerKey)) {
@@ -105,10 +123,12 @@ function register({ email, password, channelName }) {
 
   // Check if session file has a pre-existing pairingCode
   let pairingPin = generatePairingPin();
-  const sessionPath = path.join(__dirname, 'data', 'sessions', `${streamerKey}.json`);
-  if (fs.existsSync(sessionPath)) {
+  const sessionPath = path.join(DATA_DIR, 'sessions', `${streamerKey}.json`);
+  const bundledSessionPath = path.join(__dirname, 'data', 'sessions', `${streamerKey}.json`);
+  const targetSessionPath = fs.existsSync(sessionPath) ? sessionPath : (fs.existsSync(bundledSessionPath) ? bundledSessionPath : null);
+  if (targetSessionPath) {
     try {
-      const sData = JSON.parse(fs.readFileSync(sessionPath, 'utf-8'));
+      const sData = JSON.parse(fs.readFileSync(targetSessionPath, 'utf-8'));
       if (sData.pairingCode && /^\d{6}$/.test(sData.pairingCode)) {
         pairingPin = String(sData.pairingCode);
       }

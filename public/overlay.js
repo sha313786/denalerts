@@ -526,7 +526,49 @@
     processQueue();
   }
 
-  // Robust WebSocket Connection with Stream Session
+  // Robust WebSocket Connection with HTTP Polling Fallback (for Vercel & Serverless)
+  let pollingInterval = null;
+  let lastSeenTimestamp = Date.now();
+  let wsFailCount = 0;
+
+  function startPollingFallback(streamId) {
+    if (pollingInterval) return;
+    console.log('[Stream Overlay] WebSocket unavailable. Activating HTTP Polling Fallback (Serverless Mode)...');
+    if (statusEl) {
+      statusEl.textContent = '● Stream Overlay Live (Sync)';
+      statusEl.style.color = '#34d399';
+      statusEl.style.opacity = '1';
+      setTimeout(() => {
+        if (statusEl) statusEl.style.opacity = '0';
+      }, 3000);
+    }
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/poll-alerts?code=${encodeURIComponent(streamId)}&since=${lastSeenTimestamp}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.success) {
+          if (data.settings) alertSettings = { ...alertSettings, ...data.settings };
+          if (Array.isArray(data.alerts) && data.alerts.length > 0) {
+            data.alerts.forEach(alertItem => {
+              enqueueAlert(alertItem);
+              if (alertItem.timestamp && alertItem.timestamp > lastSeenTimestamp) {
+                lastSeenTimestamp = alertItem.timestamp;
+              }
+            });
+          }
+          if (data.serverTime && data.serverTime > lastSeenTimestamp) {
+            lastSeenTimestamp = data.serverTime;
+          }
+        }
+      } catch (_) {}
+    };
+
+    poll();
+    pollingInterval = setInterval(poll, 1600);
+  }
+
   function connectWebSocket() {
     const urlParams = new URLSearchParams(window.location.search);
     const streamId = (urlParams.get('code') || urlParams.get('stream') || urlParams.get('streamer') || 'default').toLowerCase().trim();
@@ -551,15 +593,17 @@
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
+        wsFailCount = 0;
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          pollingInterval = null;
+        }
         if (statusEl) {
           statusEl.textContent = '● Stream Overlay Live';
           statusEl.style.color = '#34d399';
           statusEl.style.opacity = '1';
-          // Fade out after 3 seconds to keep streaming canvas 100% clean
           setTimeout(() => {
-            if (statusEl) {
-              statusEl.style.opacity = '0';
-            }
+            if (statusEl) statusEl.style.opacity = '0';
           }, 3000);
         }
         console.log(`[Stream Overlay] Connected to alert stream: ${streamId}`);
@@ -593,23 +637,31 @@
       };
 
       ws.onclose = () => {
-        if (statusEl) {
+        wsFailCount++;
+        if (wsFailCount >= 2) {
+          startPollingFallback(streamId);
+        } else if (statusEl) {
           statusEl.style.opacity = '1';
           statusEl.textContent = '○ Reconnecting to server...';
           statusEl.style.color = '#f87171';
         }
         clearTimeout(reconnectTimeout);
-        reconnectTimeout = setTimeout(connectWebSocket, 2500);
+        reconnectTimeout = setTimeout(connectWebSocket, 4000);
       };
 
       ws.onerror = (err) => {
-        console.error('[Stream Overlay] WebSocket error:', err);
-        ws.close();
+        console.warn('[Stream Overlay] WebSocket connection unavailable:', err);
+        wsFailCount++;
+        if (wsFailCount >= 2) {
+          startPollingFallback(streamId);
+        }
+        try { ws.close(); } catch (_) {}
       };
     } catch (e) {
-      console.error('[Stream Overlay] Failed to create WebSocket:', e);
+      console.warn('[Stream Overlay] Failed to create WebSocket:', e);
+      startPollingFallback(streamId);
       clearTimeout(reconnectTimeout);
-      reconnectTimeout = setTimeout(connectWebSocket, 3000);
+      reconnectTimeout = setTimeout(connectWebSocket, 5000);
     }
   }
 

@@ -736,7 +736,14 @@
         ownVoiceMode: mode
       })
     })
-    .then(r => r.json())
+    .then(async r => {
+      const text = await r.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error(text.slice(0, 100) || `Server error (${r.status})`);
+      }
+    })
     .then(data => {
       if (btnSaveRecordedVoice) {
         btnSaveRecordedVoice.disabled = false;

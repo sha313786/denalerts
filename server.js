@@ -18,6 +18,7 @@ const DATA_DIR = IS_VERCEL ? path.join(os.tmpdir(), 'denalerts_data') : path.joi
 const SESSIONS_DIR = path.join(DATA_DIR, 'sessions');
 const BUNDLED_DATA_DIR = path.join(__dirname, 'data');
 const BUNDLED_SESSIONS_DIR = path.join(BUNDLED_DATA_DIR, 'sessions');
+const UPLOADS_DIR = IS_VERCEL ? path.join(os.tmpdir(), 'denalerts_data', 'uploads') : path.join(__dirname, 'public', 'uploads');
 
 const app = express();
 app.get(['/health', '/healthz'], (req, res) => res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() }));
@@ -35,6 +36,14 @@ try {
   }
 } catch (e) {
   console.warn('[Storage] Warning creating sessions dir:', e.message);
+}
+
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('[Storage] Warning creating uploads dir:', e.message);
 }
 
 // In-memory sessions map
@@ -586,6 +595,7 @@ app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Synchronize registered accounts pairing PINs
 try {
@@ -1266,58 +1276,73 @@ app.post('/api/test-streamelements', requireStreamerAuth, (req, res) => {
 });
 
 app.post('/api/upload-voice', (req, res) => {
-  const streamId = extractStreamId(req);
-  const { session } = getSession(streamId);
-  const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
-  if (!isPro) {
-    return res.status(403).json({ success: false, error: 'Custom Own Voice is a Creator Pro feature' });
-  }
-
-  const { audioData, fileName, ownVoiceMode } = req.body;
-  if (!audioData) {
-    return res.status(400).json({ success: false, error: 'No audio data received' });
-  }
-
-  let ext = 'webm';
-  let base64Content = audioData;
-  if (audioData.includes(',')) {
-    const parts = audioData.split(',');
-    const match = parts[0].match(/data:audio\/([a-zA-Z0-9_-]+);/);
-    if (match && match[1]) {
-      const detected = match[1].toLowerCase();
-      if (detected.includes('wav')) ext = 'wav';
-      else if (detected.includes('mp3') || detected.includes('mpeg')) ext = 'mp3';
-      else if (detected.includes('ogg')) ext = 'ogg';
-      else if (detected.includes('m4a') || detected.includes('mp4')) ext = 'm4a';
-      else ext = 'webm';
+  try {
+    const streamId = extractStreamId(req);
+    const { session } = getSession(streamId);
+    const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+    if (!isPro) {
+      return res.status(403).json({ success: false, error: 'Custom Own Voice is a Creator Pro feature' });
     }
-    base64Content = parts[1];
-  } else if (fileName && fileName.includes('.')) {
-    ext = fileName.split('.').pop().toLowerCase();
+
+    const { audioData, fileName, ownVoiceMode } = req.body;
+    if (!audioData) {
+      return res.status(400).json({ success: false, error: 'No audio data received' });
+    }
+
+    let ext = 'webm';
+    let base64Content = audioData;
+    let mimeType = 'audio/webm';
+    if (audioData.includes(',')) {
+      const parts = audioData.split(',');
+      const match = parts[0].match(/data:(audio\/[a-zA-Z0-9_-]+);/);
+      if (match && match[1]) {
+        mimeType = match[1];
+        const detected = mimeType.toLowerCase();
+        if (detected.includes('wav')) ext = 'wav';
+        else if (detected.includes('mp3') || detected.includes('mpeg')) ext = 'mp3';
+        else if (detected.includes('ogg')) ext = 'ogg';
+        else if (detected.includes('m4a') || detected.includes('mp4')) ext = 'm4a';
+        else ext = 'webm';
+      }
+      base64Content = parts[1];
+    } else if (fileName && fileName.includes('.')) {
+      ext = fileName.split('.').pop().toLowerCase();
+      if (ext === 'wav') mimeType = 'audio/wav';
+      else if (ext === 'mp3') mimeType = 'audio/mpeg';
+      else if (ext === 'ogg') mimeType = 'audio/ogg';
+    }
+
+    // Direct Data URL guarantees 100% immediate playback on any browser, OBS, or serverless container
+    let publicUrl = `data:${mimeType};base64,${base64Content}`;
+
+    // Also attempt disk write safely if running on persistent server or tmpdir
+    try {
+      if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      const targetFileName = `own_voice_${streamId}.${ext}`;
+      fs.writeFileSync(path.join(UPLOADS_DIR, targetFileName), Buffer.from(base64Content, 'base64'));
+      if (!IS_VERCEL) {
+        publicUrl = `/uploads/${targetFileName}?v=${Date.now()}`;
+      }
+    } catch (e) {
+      console.warn('[Upload Voice] File disk write skipped, using Data URL:', e.message);
+    }
+
+    session.settings.voicePersona = 'own_voice';
+    session.settings.ownVoiceUrl = publicUrl;
+    session.settings.ownVoiceMode = ownVoiceMode || session.settings.ownVoiceMode || 'intro';
+    session.settings.ownVoiceOriginalName = fileName || 'My Voice Recording';
+    saveSession(streamId);
+
+    broadcastToStream(streamId, 'SETTINGS_UPDATED', session.settings);
+    res.json({
+      success: true,
+      url: publicUrl,
+      settings: session.settings
+    });
+  } catch (err) {
+    console.error('[Upload Voice Error]', err);
+    res.status(500).json({ success: false, error: err.message });
   }
-
-  const uploadsDir = path.join(__dirname, 'public', 'uploads');
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
-  const targetFileName = `own_voice_${streamId}.${ext}`;
-  const fullPath = path.join(uploadsDir, targetFileName);
-  fs.writeFileSync(fullPath, Buffer.from(base64Content, 'base64'));
-
-  const publicUrl = `/uploads/${targetFileName}?v=${Date.now()}`;
-  session.settings.voicePersona = 'own_voice';
-  session.settings.ownVoiceUrl = publicUrl;
-  session.settings.ownVoiceMode = ownVoiceMode || session.settings.ownVoiceMode || 'intro';
-  session.settings.ownVoiceOriginalName = fileName || 'My Voice Recording';
-  saveSession(streamId);
-
-  broadcastToStream(streamId, 'SETTINGS_UPDATED', session.settings);
-  res.json({
-    success: true,
-    url: publicUrl,
-    settings: session.settings
-  });
 });
 
 app.post('/api/reset-voice', (req, res) => {
@@ -1332,104 +1357,122 @@ app.post('/api/reset-voice', (req, res) => {
 });
 
 app.post('/api/upload-media', (req, res) => {
-  const streamId = extractStreamId(req);
-  const { session } = getSession(streamId);
-  const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
-  if (!isPro) {
-    return res.status(403).json({ success: false, error: 'Custom Sound, GIF & Video Memes is a Creator Pro feature' });
-  }
-
-  const { mediaCategory, fileData, fileName, mediaUrl, mediaName } = req.body;
-  const uploadsDir = path.join(__dirname, 'public', 'uploads');
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
-  if (mediaCategory === 'sound') {
-    if (mediaUrl) {
-      session.settings.customAlertSoundUrl = mediaUrl;
-      session.settings.customAlertSoundName = mediaName || 'Preset Sound';
-    } else if (fileData) {
-      let ext = 'mp3';
-      let base64Content = fileData;
-      if (fileData.includes(',')) {
-        const parts = fileData.split(',');
-        const match = parts[0].match(/data:audio\/([a-zA-Z0-9_-]+);/);
-        if (match && match[1]) {
-          const detected = match[1].toLowerCase();
-          if (detected.includes('wav')) ext = 'wav';
-          else if (detected.includes('ogg')) ext = 'ogg';
-          else if (detected.includes('m4a') || detected.includes('mp4')) ext = 'm4a';
-          else ext = 'mp3';
-        }
-        base64Content = parts[1];
-      } else if (fileName && fileName.includes('.')) {
-        ext = fileName.split('.').pop().toLowerCase();
-      }
-      const targetFileName = `alert_sound_${streamId}_${Date.now()}.${ext}`;
-      const fullPath = path.join(uploadsDir, targetFileName);
-      fs.writeFileSync(fullPath, Buffer.from(base64Content, 'base64'));
-      session.settings.customAlertSoundUrl = `/uploads/${targetFileName}`;
-      session.settings.customAlertSoundName = fileName || 'Uploaded Audio';
-    } else {
-      return res.status(400).json({ success: false, error: 'No audio data or URL provided' });
+  try {
+    const streamId = extractStreamId(req);
+    const { session } = getSession(streamId);
+    const isPro = session.subscription && (session.subscription.plan === 'pro' || session.subscription.plan === 'pro_trial');
+    if (!isPro) {
+      return res.status(403).json({ success: false, error: 'Custom Sound, GIF & Video Memes is a Creator Pro feature' });
     }
-  } else if (mediaCategory === 'visual') {
-    if (mediaUrl) {
-      session.settings.customMediaUrl = mediaUrl;
-      const lowerUrl = mediaUrl.toLowerCase();
-      if (lowerUrl.includes('.mp4') || lowerUrl.includes('.webm')) {
-        session.settings.customMediaType = 'video';
-      } else if (lowerUrl.includes('.gif') || lowerUrl.includes('giphy') || lowerUrl.includes('tenor')) {
-        session.settings.customMediaType = 'gif';
-      } else {
-        session.settings.customMediaType = 'image';
-      }
-      session.settings.customMediaName = mediaName || 'Preset Visual';
-    } else if (fileData) {
-      let ext = 'gif';
-      let type = 'image';
-      let base64Content = fileData;
-      if (fileData.includes(',')) {
-        const parts = fileData.split(',');
-        const match = parts[0].match(/data:(image|video)\/([a-zA-Z0-9_-]+);/);
-        if (match) {
-          const mainType = match[1];
-          const subType = match[2].toLowerCase();
-          if (mainType === 'video' || subType.includes('mp4') || subType.includes('webm')) {
-            type = 'video';
-            ext = subType.includes('webm') ? 'webm' : 'mp4';
-          } else if (subType.includes('gif')) {
-            type = 'gif';
-            ext = 'gif';
-          } else {
-            type = 'image';
-            ext = subType.includes('png') ? 'png' : (subType.includes('webp') ? 'webp' : 'jpg');
+
+    const { mediaCategory, fileData, fileName, mediaUrl, mediaName } = req.body;
+
+    if (mediaCategory === 'sound') {
+      if (mediaUrl) {
+        session.settings.customAlertSoundUrl = mediaUrl;
+        session.settings.customAlertSoundName = mediaName || 'Preset Sound';
+      } else if (fileData) {
+        let ext = 'mp3';
+        let base64Content = fileData;
+        let mimeType = 'audio/mpeg';
+        if (fileData.includes(',')) {
+          const parts = fileData.split(',');
+          const match = parts[0].match(/data:(audio\/[a-zA-Z0-9_-]+);/);
+          if (match && match[1]) {
+            mimeType = match[1];
+            const detected = mimeType.toLowerCase();
+            if (detected.includes('wav')) ext = 'wav';
+            else if (detected.includes('ogg')) ext = 'ogg';
+            else if (detected.includes('m4a') || detected.includes('mp4')) ext = 'm4a';
+            else ext = 'mp3';
           }
+          base64Content = parts[1];
+        } else if (fileName && fileName.includes('.')) {
+          ext = fileName.split('.').pop().toLowerCase();
+          if (ext === 'wav') mimeType = 'audio/wav';
         }
-        base64Content = parts[1];
-      } else if (fileName && fileName.includes('.')) {
-        ext = fileName.split('.').pop().toLowerCase();
-        if (ext === 'mp4' || ext === 'webm') type = 'video';
-        else if (ext === 'gif') type = 'gif';
-        else type = 'image';
+        let soundUrl = `data:${mimeType};base64,${base64Content}`;
+        try {
+          if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+          const targetFileName = `alert_sound_${streamId}_${Date.now()}.${ext}`;
+          fs.writeFileSync(path.join(UPLOADS_DIR, targetFileName), Buffer.from(base64Content, 'base64'));
+          if (!IS_VERCEL) soundUrl = `/uploads/${targetFileName}`;
+        } catch (e) {
+          console.warn('[Upload Sound] Disk write skipped, using Data URL:', e.message);
+        }
+        session.settings.customAlertSoundUrl = soundUrl;
+        session.settings.customAlertSoundName = fileName || 'Uploaded Audio';
+      } else {
+        return res.status(400).json({ success: false, error: 'No audio data or URL provided' });
       }
-      const targetFileName = `alert_visual_${streamId}_${Date.now()}.${ext}`;
-      const fullPath = path.join(uploadsDir, targetFileName);
-      fs.writeFileSync(fullPath, Buffer.from(base64Content, 'base64'));
-      session.settings.customMediaUrl = `/uploads/${targetFileName}`;
-      session.settings.customMediaType = type;
-      session.settings.customMediaName = fileName || 'Uploaded Meme';
+    } else if (mediaCategory === 'visual') {
+      if (mediaUrl) {
+        session.settings.customMediaUrl = mediaUrl;
+        const lowerUrl = mediaUrl.toLowerCase();
+        if (lowerUrl.includes('.mp4') || lowerUrl.includes('.webm')) {
+          session.settings.customMediaType = 'video';
+        } else if (lowerUrl.includes('.gif') || lowerUrl.includes('giphy') || lowerUrl.includes('tenor')) {
+          session.settings.customMediaType = 'gif';
+        } else {
+          session.settings.customMediaType = 'image';
+        }
+        session.settings.customMediaName = mediaName || 'Preset Visual';
+      } else if (fileData) {
+        let ext = 'gif';
+        let type = 'image';
+        let base64Content = fileData;
+        let mimeType = 'image/gif';
+        if (fileData.includes(',')) {
+          const parts = fileData.split(',');
+          const match = parts[0].match(/data:(image|video)\/([a-zA-Z0-9_-]+);/);
+          if (match) {
+            const mainType = match[1];
+            const subType = match[2].toLowerCase();
+            mimeType = `${mainType}/${subType}`;
+            if (mainType === 'video' || subType.includes('mp4') || subType.includes('webm')) {
+              type = 'video';
+              ext = subType.includes('webm') ? 'webm' : 'mp4';
+            } else if (subType.includes('gif')) {
+              type = 'gif';
+              ext = 'gif';
+            } else {
+              type = 'image';
+              ext = subType.includes('png') ? 'png' : (subType.includes('webp') ? 'webp' : 'jpg');
+            }
+          }
+          base64Content = parts[1];
+        } else if (fileName && fileName.includes('.')) {
+          ext = fileName.split('.').pop().toLowerCase();
+          if (ext === 'mp4' || ext === 'webm') type = 'video';
+          else if (ext === 'gif') type = 'gif';
+          else type = 'image';
+        }
+        let visualUrl = `data:${mimeType};base64,${base64Content}`;
+        try {
+          if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+          const targetFileName = `alert_visual_${streamId}_${Date.now()}.${ext}`;
+          fs.writeFileSync(path.join(UPLOADS_DIR, targetFileName), Buffer.from(base64Content, 'base64'));
+          if (!IS_VERCEL) visualUrl = `/uploads/${targetFileName}`;
+        } catch (e) {
+          console.warn('[Upload Visual] Disk write skipped, using Data URL:', e.message);
+        }
+        session.settings.customMediaUrl = visualUrl;
+        session.settings.customMediaType = type;
+        session.settings.customMediaName = fileName || 'Uploaded Meme';
+      } else {
+        return res.status(400).json({ success: false, error: 'No visual file data or URL provided' });
+      }
     } else {
-      return res.status(400).json({ success: false, error: 'No visual file data or URL provided' });
+      return res.status(400).json({ success: false, error: 'Invalid mediaCategory. Must be sound or visual.' });
     }
-  } else {
-    return res.status(400).json({ success: false, error: 'Invalid mediaCategory. Must be sound or visual.' });
-  }
 
-  saveSession(streamId);
-  broadcastToStream(streamId, 'SETTINGS_UPDATED', session.settings);
-  res.json({ success: true, settings: session.settings });
+    saveSession(streamId);
+    broadcastToStream(streamId, 'SETTINGS_UPDATED', session.settings);
+    res.json({ success: true, settings: session.settings });
+  } catch (err) {
+    console.error('[Upload Media Error]', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.post('/api/reset-media', (req, res) => {

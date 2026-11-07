@@ -1002,10 +1002,14 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
     if (isProPlan) session.settings.streamElementsChannelId = String(req.body.streamElementsChannelId).trim();
   }
 
-  if (req.body.goalTitle !== undefined) session.settings.goalTitle = String(req.body.goalTitle).trim();
-  if (req.body.goalTarget !== undefined) session.settings.goalTarget = Math.max(1, parseFloat(req.body.goalTarget) || 1000);
-  if (req.body.goalCurrent !== undefined) session.settings.goalCurrent = Math.max(0, parseFloat(req.body.goalCurrent) || 0);
-  if (req.body.goalTheme !== undefined) session.settings.goalTheme = String(req.body.goalTheme).trim();
+  if (req.body.goalTitle !== undefined && req.body.goalTitle !== null) session.settings.goalTitle = String(req.body.goalTitle).trim();
+  if (req.body.goalTarget !== undefined && req.body.goalTarget !== null && !isNaN(parseFloat(req.body.goalTarget))) {
+    session.settings.goalTarget = Math.max(1, parseFloat(req.body.goalTarget));
+  }
+  if (req.body.goalCurrent !== undefined && req.body.goalCurrent !== null && !isNaN(parseFloat(req.body.goalCurrent))) {
+    session.settings.goalCurrent = Math.max(0, parseFloat(req.body.goalCurrent));
+  }
+  if (req.body.goalTheme !== undefined && req.body.goalTheme !== null) session.settings.goalTheme = String(req.body.goalTheme).trim();
   if (req.body.goalCustomColors !== undefined && typeof req.body.goalCustomColors === 'object') {
     session.settings.goalCustomColors = {
       barStart: String(req.body.goalCustomColors.barStart || '#00f0ff'),
@@ -1108,6 +1112,48 @@ app.post('/api/goal/bump', requireStreamerAuth, (req, res) => {
   });
   broadcastToStream(streamId, 'SETTINGS_UPDATED', session.settings);
   res.json({ success: true, goalCurrent: session.settings.goalCurrent, settings: session.settings });
+});
+
+app.post('/api/goal/update', requireStreamerAuth, (req, res) => {
+  const streamId = req.streamId || extractStreamId(req);
+  const { session } = getSession(streamId);
+  const { title, target, current, enabled, theme, customColors } = req.body;
+
+  if (title !== undefined && title !== null) session.settings.goalTitle = String(title).trim();
+  if (target !== undefined && target !== null && !isNaN(parseFloat(target))) {
+    session.settings.goalTarget = Math.max(1, parseFloat(target));
+  }
+  if (current !== undefined && current !== null && !isNaN(parseFloat(current))) {
+    session.settings.goalCurrent = Math.max(0, parseFloat(current));
+  }
+  if (enabled !== undefined) session.settings.goalEnabled = Boolean(enabled);
+  if (theme !== undefined && theme !== null) session.settings.goalTheme = String(theme).trim();
+  if (customColors && typeof customColors === 'object') {
+    session.settings.goalCustomColors = {
+      barStart: String(customColors.barStart || '#00f0ff'),
+      barEnd: String(customColors.barEnd || '#ec4899'),
+      glow: String(customColors.glow || '#00f0ff'),
+      text: String(customColors.text || '#00f0ff')
+    };
+  }
+
+  saveSession(streamId);
+  broadcastToStream(streamId, 'GOAL_UPDATED', {
+    title: session.settings.goalTitle,
+    target: session.settings.goalTarget,
+    current: session.settings.goalCurrent,
+    enabled: session.settings.goalEnabled,
+    theme: session.settings.goalTheme || 'default',
+    goalTheme: session.settings.goalTheme || 'default',
+    goalCustomColors: session.settings.goalCustomColors || null,
+    customColors: session.settings.goalCustomColors || null,
+    goalTitle: session.settings.goalTitle,
+    goalTarget: session.settings.goalTarget,
+    goalCurrent: session.settings.goalCurrent,
+    goalEnabled: session.settings.goalEnabled
+  });
+  broadcastToStream(streamId, 'SETTINGS_UPDATED', session.settings);
+  res.json({ success: true, settings: session.settings, goalCurrent: session.settings.goalCurrent });
 });
 
 app.post('/api/test-discord', (req, res) => {

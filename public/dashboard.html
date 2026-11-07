@@ -871,12 +871,18 @@
 
             <!-- Action Buttons -->
             <div style="display:flex; gap:8px; margin-top:10px;">
+              <button type="button" id="btn-save-goal" class="btn btn-primary btn-sm" style="flex:1.2; justify-content:center; font-weight:700; padding:8px 12px; white-space:nowrap; background:linear-gradient(135deg, #00f0ff, #3b82f6); color:#000;" title="Save Goal Settings & Sync with OBS">
+                <span>💾 Save Goal</span>
+              </button>
               <button type="button" id="btn-bump-goal" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 12px; white-space:nowrap;" title="Simulate a +₹100 donation bump">
                 <span>⚡ Test +₹100</span>
               </button>
               <button type="button" id="btn-reset-goal" class="btn btn-secondary btn-sm" style="flex-shrink:0; color:#ef4444; border-color:rgba(239, 68, 68, 0.35); font-weight:700; padding:8px 14px; white-space:nowrap;" title="Reset current progress to ₹0">
                 <span>Reset (₹0)</span>
               </button>
+            </div>
+            <div style="font-size:10.5px; color:#64748b; margin-top:5px; line-height:1.4;">
+              💡 <em>Live stream donations automatically increment your goal progress in real-time.</em>
             </div>
 
               <div id="goal-status-msg" style="display:none; font-size:11.5px; padding:6px 10px; border-radius:6px;"></div>

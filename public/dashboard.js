@@ -399,6 +399,117 @@
     }
   }
 
+  function applyAllSettingsToInputs(st, isLiveSync = false) {
+    if (!st) return;
+    currentSettings = { ...currentSettings, ...st };
+
+    // Voice Speed
+    if (st.voiceSpeed !== undefined) {
+      const spd = parseFloat(st.voiceSpeed);
+      if (!isNaN(spd) && rangeSpeed && (!isLiveSync || document.activeElement !== rangeSpeed)) {
+        rangeSpeed.value = spd;
+        if (speedVal) speedVal.textContent = spd.toFixed(2) + 'x';
+        speedPresets.forEach(preset => {
+          preset.classList.toggle('active', parseFloat(preset.getAttribute('data-speed')) === spd);
+        });
+      }
+    }
+
+    // Voice Pitch
+    if (st.voicePitch !== undefined && rangePitch) {
+      if (!isLiveSync || document.activeElement !== rangePitch) {
+        rangePitch.value = parseFloat(st.voicePitch).toFixed(2);
+        if (pitchVal) pitchVal.textContent = parseFloat(st.voicePitch).toFixed(2) + 'x';
+      }
+    }
+
+    // Anti-Spam thresholds
+    if (inputMinAlert && st.minAlertAmount !== undefined && (!isLiveSync || document.activeElement !== inputMinAlert)) {
+      inputMinAlert.value = st.minAlertAmount;
+    }
+    if (inputMinTts && st.minTtsAmount !== undefined && (!isLiveSync || document.activeElement !== inputMinTts)) {
+      inputMinTts.value = st.minTtsAmount;
+    }
+    if (checkCensor && st.censorProfanity !== undefined && (!isLiveSync || document.activeElement !== checkCensor)) {
+      checkCensor.checked = st.censorProfanity !== false;
+    }
+
+    // Voice Language & Persona
+    if (selectVoiceLang && st.voiceLanguage && (!isLiveSync || document.activeElement !== selectVoiceLang)) {
+      selectVoiceLang.value = st.voiceLanguage;
+      if (REGIONAL_TEMPLATES && REGIONAL_TEMPLATES[st.voiceLanguage] && voicePreviewPhrase) {
+        voicePreviewPhrase.textContent = REGIONAL_TEMPLATES[st.voiceLanguage].preview;
+      }
+    }
+    if (selectVoicePersona && st.voicePersona && (!isLiveSync || document.activeElement !== selectVoicePersona)) {
+      selectVoicePersona.value = st.voicePersona;
+    }
+
+    // Discord Webhook
+    if (inputDiscordWebhook && st.discordWebhookUrl !== undefined && (!isLiveSync || document.activeElement !== inputDiscordWebhook)) {
+      inputDiscordWebhook.value = st.discordWebhookUrl || '';
+    }
+    if (checkDiscordEnabled && st.discordWebhookEnabled !== undefined && (!isLiveSync || document.activeElement !== checkDiscordEnabled)) {
+      checkDiscordEnabled.checked = Boolean(st.discordWebhookEnabled);
+    }
+
+    // Streamlabs Relay
+    if (inputStreamlabsToken && st.streamlabsToken !== undefined && (!isLiveSync || document.activeElement !== inputStreamlabsToken)) {
+      inputStreamlabsToken.value = st.streamlabsToken || '';
+    }
+    if (checkStreamlabsEnabled && st.streamlabsEnabled !== undefined && (!isLiveSync || document.activeElement !== checkStreamlabsEnabled)) {
+      checkStreamlabsEnabled.checked = Boolean(st.streamlabsEnabled);
+    }
+
+    // StreamElements Relay
+    if (inputStreamElementsChannel && st.streamElementsChannelId !== undefined && (!isLiveSync || document.activeElement !== inputStreamElementsChannel)) {
+      inputStreamElementsChannel.value = st.streamElementsChannelId || '';
+    }
+    if (inputStreamElementsToken && st.streamElementsToken !== undefined && (!isLiveSync || document.activeElement !== inputStreamElementsToken)) {
+      inputStreamElementsToken.value = st.streamElementsToken || '';
+    }
+    if (checkStreamElementsEnabled && st.streamElementsEnabled !== undefined && (!isLiveSync || document.activeElement !== checkStreamElementsEnabled)) {
+      checkStreamElementsEnabled.checked = Boolean(st.streamElementsEnabled);
+    }
+
+    // Live Stream Donation Goal
+    const goalTtl = st.goalTitle !== undefined ? st.goalTitle : (st.title !== undefined ? st.title : undefined);
+    if (inputGoalTitle && goalTtl !== undefined && (!isLiveSync || document.activeElement !== inputGoalTitle)) {
+      inputGoalTitle.value = goalTtl;
+    }
+
+    const goalTgt = st.goalTarget !== undefined ? st.goalTarget : (st.target !== undefined ? st.target : undefined);
+    if (inputGoalTarget && goalTgt !== undefined && (!isLiveSync || document.activeElement !== inputGoalTarget)) {
+      inputGoalTarget.value = goalTgt;
+    }
+
+    const goalCur = st.goalCurrent !== undefined ? st.goalCurrent : (st.current !== undefined ? st.current : undefined);
+    if (inputGoalCurrent && goalCur !== undefined && (!isLiveSync || document.activeElement !== inputGoalCurrent)) {
+      inputGoalCurrent.value = goalCur;
+    }
+
+    const goalEn = st.goalEnabled !== undefined ? st.goalEnabled : (st.enabled !== undefined ? st.enabled : undefined);
+    if (checkGoalEnabled && goalEn !== undefined && (!isLiveSync || document.activeElement !== checkGoalEnabled)) {
+      checkGoalEnabled.checked = goalEn !== false;
+    }
+
+    const goalThm = st.goalTheme !== undefined ? st.goalTheme : (st.theme !== undefined ? st.theme : undefined);
+    if (selectGoalTheme && goalThm !== undefined && (!isLiveSync || document.activeElement !== selectGoalTheme)) {
+      selectGoalTheme.value = goalThm;
+      updateOverlayUrls(streamId);
+    }
+
+    const customCols = st.goalCustomColors || st.customColors;
+    if (customCols) {
+      applyCustomColorsToInputs(customCols);
+    }
+
+    updateGoalCustomVisibility();
+    updateVoiceStudioVisibility();
+    renderActiveOwnVoice(currentSettings);
+    renderActiveMedia(currentSettings);
+  }
+
   // Copy Buttons
   function copyText(val, btn, originalHtml) {
     const doneHtml = '<span>Copied</span>';
@@ -833,33 +944,46 @@
 
   function saveSettings() {
     const activeModeEl = document.querySelector('input[name="ov-mode"]:checked');
+
+    let goalCur = currentSettings.goalCurrent !== undefined ? parseFloat(currentSettings.goalCurrent) : 0;
+    if (inputGoalCurrent && inputGoalCurrent.value !== '' && !isNaN(parseFloat(inputGoalCurrent.value))) {
+      goalCur = parseFloat(inputGoalCurrent.value);
+    }
+
+    let goalTgt = 1000;
+    if (inputGoalTarget && inputGoalTarget.value !== '' && !isNaN(parseFloat(inputGoalTarget.value))) {
+      goalTgt = parseFloat(inputGoalTarget.value);
+    } else if (currentSettings.goalTarget !== undefined) {
+      goalTgt = parseFloat(currentSettings.goalTarget);
+    }
+
     const payload = {
-      voiceSpeed: parseFloat(rangeSpeed ? rangeSpeed.value : 1.00) || 1.00,
-      voiceLanguage: selectVoiceLang ? selectVoiceLang.value : 'en-IN',
-      voicePersona: selectVoicePersona ? selectVoicePersona.value : 'standard',
-      voicePitch: parseFloat(rangePitch ? rangePitch.value : 1.00) || 1.00,
-      ownVoiceMode: activeModeEl ? activeModeEl.value : 'intro',
-      minAlertAmount: parseFloat(inputMinAlert ? inputMinAlert.value : 10) || 10,
-      minTtsAmount: parseFloat(inputMinTts ? inputMinTts.value : 20) || 20,
-      censorProfanity: checkCensor ? checkCensor.checked : true,
-      discordWebhookUrl: inputDiscordWebhook ? inputDiscordWebhook.value.trim() : '',
-      discordWebhookEnabled: checkDiscordEnabled ? checkDiscordEnabled.checked : false,
-      streamlabsEnabled: checkStreamlabsEnabled ? checkStreamlabsEnabled.checked : false,
-      streamlabsToken: inputStreamlabsToken ? inputStreamlabsToken.value.trim() : '',
-      streamElementsEnabled: checkStreamElementsEnabled ? checkStreamElementsEnabled.checked : false,
-      streamElementsChannelId: inputStreamElementsChannel ? inputStreamElementsChannel.value.trim() : '',
-      streamElementsToken: inputStreamElementsToken ? inputStreamElementsToken.value.trim() : '',
-      goalTitle: inputGoalTitle ? inputGoalTitle.value.trim() : 'Live Stream Goal',
-      goalTarget: parseFloat(inputGoalTarget ? inputGoalTarget.value : 1000) || 1000,
-      goalCurrent: parseFloat(inputGoalCurrent ? inputGoalCurrent.value : 0) || 0,
-      goalTheme: selectGoalTheme ? selectGoalTheme.value : 'default',
+      voiceSpeed: parseFloat(rangeSpeed ? rangeSpeed.value : (currentSettings.voiceSpeed || 1.00)) || 1.00,
+      voiceLanguage: selectVoiceLang ? selectVoiceLang.value : (currentSettings.voiceLanguage || 'en-IN'),
+      voicePersona: selectVoicePersona ? selectVoicePersona.value : (currentSettings.voicePersona || 'standard'),
+      voicePitch: parseFloat(rangePitch ? rangePitch.value : (currentSettings.voicePitch || 1.00)) || 1.00,
+      ownVoiceMode: activeModeEl ? activeModeEl.value : (currentSettings.ownVoiceMode || 'intro'),
+      minAlertAmount: parseFloat(inputMinAlert ? inputMinAlert.value : (currentSettings.minAlertAmount || 10)) || 10,
+      minTtsAmount: parseFloat(inputMinTts ? inputMinTts.value : (currentSettings.minTtsAmount || 20)) || 20,
+      censorProfanity: checkCensor ? checkCensor.checked : (currentSettings.censorProfanity !== false),
+      discordWebhookUrl: inputDiscordWebhook ? inputDiscordWebhook.value.trim() : (currentSettings.discordWebhookUrl || ''),
+      discordWebhookEnabled: checkDiscordEnabled ? checkDiscordEnabled.checked : Boolean(currentSettings.discordWebhookEnabled),
+      streamlabsEnabled: checkStreamlabsEnabled ? checkStreamlabsEnabled.checked : Boolean(currentSettings.streamlabsEnabled),
+      streamlabsToken: inputStreamlabsToken ? inputStreamlabsToken.value.trim() : (currentSettings.streamlabsToken || ''),
+      streamElementsEnabled: checkStreamElementsEnabled ? checkStreamElementsEnabled.checked : Boolean(currentSettings.streamElementsEnabled),
+      streamElementsChannelId: inputStreamElementsChannel ? inputStreamElementsChannel.value.trim() : (currentSettings.streamElementsChannelId || ''),
+      streamElementsToken: inputStreamElementsToken ? inputStreamElementsToken.value.trim() : (currentSettings.streamElementsToken || ''),
+      goalTitle: inputGoalTitle && inputGoalTitle.value.trim() !== '' ? inputGoalTitle.value.trim() : (currentSettings.goalTitle || 'Live Stream Goal'),
+      goalTarget: goalTgt,
+      goalCurrent: goalCur,
+      goalTheme: selectGoalTheme ? selectGoalTheme.value : (currentSettings.goalTheme || 'default'),
       goalCustomColors: {
-        barStart: inputGoalBarStart ? inputGoalBarStart.value : '#00f0ff',
-        barEnd: inputGoalBarEnd ? inputGoalBarEnd.value : '#ec4899',
-        glow: inputGoalGlow ? inputGoalGlow.value : '#00f0ff',
-        text: inputGoalText ? inputGoalText.value : '#00f0ff'
+        barStart: inputGoalBarStart ? inputGoalBarStart.value : (currentSettings.goalCustomColors && currentSettings.goalCustomColors.barStart || '#00f0ff'),
+        barEnd: inputGoalBarEnd ? inputGoalBarEnd.value : (currentSettings.goalCustomColors && currentSettings.goalCustomColors.barEnd || '#ec4899'),
+        glow: inputGoalGlow ? inputGoalGlow.value : (currentSettings.goalCustomColors && currentSettings.goalCustomColors.glow || '#00f0ff'),
+        text: inputGoalText ? inputGoalText.value : (currentSettings.goalCustomColors && currentSettings.goalCustomColors.text || '#00f0ff')
       },
-      goalEnabled: checkGoalEnabled ? checkGoalEnabled.checked : true
+      goalEnabled: checkGoalEnabled ? checkGoalEnabled.checked : (currentSettings.goalEnabled !== false)
     };
 
     if (btnSaveSettings) {
@@ -876,7 +1000,7 @@
       body: JSON.stringify(payload)
     }).then(r => r.json()).then(data => {
       if (data && data.settings) {
-        currentSettings = { ...currentSettings, ...data.settings };
+        applyAllSettingsToInputs(data.settings, true);
       }
       triggerAutoSaveIndicator('Settings auto-saved to stream! ✓');
       if (btnSaveSettings) {
@@ -924,8 +1048,12 @@
   if (btnSaveGoal) {
     btnSaveGoal.addEventListener('click', () => {
       saveSettings();
-      showGoalStatus('Stream Goal settings saved!');
-      triggerAutoSaveIndicator('Goal settings auto-saved! ✓');
+      btnSaveGoal.innerHTML = '<span>Saved ✓</span>';
+      setTimeout(() => {
+        btnSaveGoal.innerHTML = '<span>💾 Save Goal</span>';
+      }, 1500);
+      showGoalStatus('Stream Goal settings saved & synced with OBS!');
+      triggerAutoSaveIndicator('Goal settings saved! ✓');
     });
   }
 
@@ -1764,19 +1892,7 @@
           renderHistory(historyData);
         }
         if (data.settings) {
-          currentSettings = { ...currentSettings, ...data.settings };
-          renderActiveMedia(currentSettings);
-          const spd = data.settings.voiceSpeed !== undefined ? parseFloat(data.settings.voiceSpeed) : 1.00;
-          if (rangeSpeed) rangeSpeed.value = spd;
-          if (speedVal) speedVal.textContent = spd.toFixed(2) + 'x';
-          speedPresets.forEach(preset => {
-            preset.classList.toggle('active', parseFloat(preset.getAttribute('data-speed')) === spd);
-          });
-          if (inputMinAlert) inputMinAlert.value = data.settings.minAlertAmount || 10;
-          if (inputMinTts) inputMinTts.value = data.settings.minTtsAmount || 20;
-          if (checkCensor) checkCensor.checked = data.settings.censorProfanity !== false;
-          if (data.settings.voiceLanguage && selectVoiceLang) selectVoiceLang.value = data.settings.voiceLanguage;
-          if (data.settings.voicePersona && selectVoicePersona) selectVoicePersona.value = data.settings.voicePersona;
+          applyAllSettingsToInputs(data.settings, false);
         }
         lastDashboardPolledTime = data.serverTime || Date.now();
       }
@@ -1798,8 +1914,7 @@
         const data = await res.json();
         if (data && data.success) {
           if (data.settings) {
-            currentSettings = { ...currentSettings, ...data.settings };
-            renderActiveMedia(currentSettings);
+            applyAllSettingsToInputs(data.settings, true);
           }
           if (data.stats) {
             updateStats(data.stats);
@@ -1861,134 +1976,15 @@
           }
 
           if (msg.data.settings) {
-            currentSettings = { ...currentSettings, ...msg.data.settings };
-            const spd = msg.data.settings.voiceSpeed !== undefined ? parseFloat(msg.data.settings.voiceSpeed) : 1.00;
-            if (rangeSpeed) rangeSpeed.value = spd;
-            if (speedVal) speedVal.textContent = spd.toFixed(2) + 'x';
-            speedPresets.forEach(preset => {
-              preset.classList.toggle('active', parseFloat(preset.getAttribute('data-speed')) === spd);
-            });
-            if (inputMinAlert) inputMinAlert.value = msg.data.settings.minAlertAmount || 10;
-            if (inputMinTts) inputMinTts.value = msg.data.settings.minTtsAmount || 20;
-            if (checkCensor) checkCensor.checked = msg.data.settings.censorProfanity !== false;
-            if (msg.data.settings.voiceLanguage && selectVoiceLang) {
-              selectVoiceLang.value = msg.data.settings.voiceLanguage;
-              if (REGIONAL_TEMPLATES[msg.data.settings.voiceLanguage] && voicePreviewPhrase) {
-                voicePreviewPhrase.textContent = REGIONAL_TEMPLATES[msg.data.settings.voiceLanguage].preview;
-              }
-            }
-            if (msg.data.settings.voicePersona && selectVoicePersona) {
-              selectVoicePersona.value = msg.data.settings.voicePersona;
-            }
-            if (msg.data.settings.voicePitch !== undefined && rangePitch) {
-              rangePitch.value = parseFloat(msg.data.settings.voicePitch).toFixed(2);
-              if (pitchVal) pitchVal.textContent = parseFloat(msg.data.settings.voicePitch).toFixed(2) + 'x';
-            }
-            if (inputDiscordWebhook && msg.data.settings.discordWebhookUrl !== undefined) {
-              inputDiscordWebhook.value = msg.data.settings.discordWebhookUrl || '';
-            }
-            if (checkDiscordEnabled && msg.data.settings.discordWebhookEnabled !== undefined) {
-              checkDiscordEnabled.checked = Boolean(msg.data.settings.discordWebhookEnabled);
-            }
-            if (inputStreamlabsToken && msg.data.settings.streamlabsToken !== undefined) {
-              inputStreamlabsToken.value = msg.data.settings.streamlabsToken || '';
-            }
-            if (checkStreamlabsEnabled && msg.data.settings.streamlabsEnabled !== undefined) {
-              checkStreamlabsEnabled.checked = Boolean(msg.data.settings.streamlabsEnabled);
-            }
-            if (inputStreamElementsChannel && msg.data.settings.streamElementsChannelId !== undefined) {
-              inputStreamElementsChannel.value = msg.data.settings.streamElementsChannelId || '';
-            }
-            if (inputStreamElementsToken && msg.data.settings.streamElementsToken !== undefined) {
-              inputStreamElementsToken.value = msg.data.settings.streamElementsToken || '';
-            }
-            if (checkStreamElementsEnabled && msg.data.settings.streamElementsEnabled !== undefined) {
-              checkStreamElementsEnabled.checked = Boolean(msg.data.settings.streamElementsEnabled);
-            }
-            if (inputGoalTitle && msg.data.settings.goalTitle !== undefined) inputGoalTitle.value = msg.data.settings.goalTitle;
-            if (inputGoalTarget && msg.data.settings.goalTarget !== undefined) inputGoalTarget.value = msg.data.settings.goalTarget;
-            if (inputGoalCurrent && msg.data.settings.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.settings.goalCurrent;
-            if (checkGoalEnabled && msg.data.settings.goalEnabled !== undefined) checkGoalEnabled.checked = msg.data.settings.goalEnabled !== false;
-            if (selectGoalTheme && msg.data.settings.goalTheme !== undefined) {
-              selectGoalTheme.value = msg.data.settings.goalTheme;
-              updateOverlayUrls(streamId);
-            }
-            if (msg.data.settings.goalCustomColors) {
-              applyCustomColorsToInputs(msg.data.settings.goalCustomColors);
-            }
-            updateGoalCustomVisibility();
-            updateVoiceStudioVisibility();
-            renderActiveOwnVoice(currentSettings);
-            renderActiveMedia(currentSettings);
+            applyAllSettingsToInputs(msg.data.settings, false);
           }
         } else if (msg.type === 'SETTINGS_UPDATED') {
           if (msg.data) {
-            currentSettings = { ...currentSettings, ...msg.data };
-            if (msg.data.voiceLanguage && selectVoiceLang) {
-              selectVoiceLang.value = msg.data.voiceLanguage;
-              if (REGIONAL_TEMPLATES[msg.data.voiceLanguage] && voicePreviewPhrase) {
-                voicePreviewPhrase.textContent = REGIONAL_TEMPLATES[msg.data.voiceLanguage].preview;
-              }
-            }
-            if (msg.data.voicePersona && selectVoicePersona) {
-              selectVoicePersona.value = msg.data.voicePersona;
-            }
-            if (msg.data.voicePitch !== undefined && rangePitch) {
-              rangePitch.value = parseFloat(msg.data.voicePitch).toFixed(2);
-              if (pitchVal) pitchVal.textContent = parseFloat(msg.data.voicePitch).toFixed(2) + 'x';
-            }
-            if (inputDiscordWebhook && msg.data.discordWebhookUrl !== undefined) {
-              inputDiscordWebhook.value = msg.data.discordWebhookUrl || '';
-            }
-            if (checkDiscordEnabled && msg.data.discordWebhookEnabled !== undefined) {
-              checkDiscordEnabled.checked = Boolean(msg.data.discordWebhookEnabled);
-            }
-            if (inputStreamlabsToken && msg.data.streamlabsToken !== undefined) {
-              inputStreamlabsToken.value = msg.data.streamlabsToken || '';
-            }
-            if (checkStreamlabsEnabled && msg.data.streamlabsEnabled !== undefined) {
-              checkStreamlabsEnabled.checked = Boolean(msg.data.streamlabsEnabled);
-            }
-            if (inputStreamElementsChannel && msg.data.streamElementsChannelId !== undefined) {
-              inputStreamElementsChannel.value = msg.data.streamElementsChannelId || '';
-            }
-            if (inputStreamElementsToken && msg.data.streamElementsToken !== undefined) {
-              inputStreamElementsToken.value = msg.data.streamElementsToken || '';
-            }
-            if (checkStreamElementsEnabled && msg.data.streamElementsEnabled !== undefined) {
-              checkStreamElementsEnabled.checked = Boolean(msg.data.streamElementsEnabled);
-            }
-            if (inputGoalTitle && msg.data.goalTitle !== undefined) inputGoalTitle.value = msg.data.goalTitle;
-            if (inputGoalTarget && msg.data.goalTarget !== undefined) inputGoalTarget.value = msg.data.goalTarget;
-            if (inputGoalCurrent && msg.data.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.goalCurrent;
-            if (checkGoalEnabled && msg.data.goalEnabled !== undefined) checkGoalEnabled.checked = msg.data.goalEnabled !== false;
-            if (selectGoalTheme && msg.data.goalTheme !== undefined) {
-              selectGoalTheme.value = msg.data.goalTheme;
-              updateOverlayUrls(streamId);
-            }
-            if (msg.data.goalCustomColors) {
-              applyCustomColorsToInputs(msg.data.goalCustomColors);
-            }
-            updateGoalCustomVisibility();
-            updateVoiceStudioVisibility();
-            renderActiveOwnVoice(currentSettings);
-            renderActiveMedia(currentSettings);
+            applyAllSettingsToInputs(msg.data, true);
           }
         } else if (msg.type === 'GOAL_UPDATED') {
           if (msg.data) {
-            if (inputGoalTitle && msg.data.goalTitle !== undefined) inputGoalTitle.value = msg.data.goalTitle;
-            if (inputGoalTarget && msg.data.goalTarget !== undefined) inputGoalTarget.value = msg.data.goalTarget;
-            if (inputGoalCurrent && msg.data.goalCurrent !== undefined) inputGoalCurrent.value = msg.data.goalCurrent;
-            if (checkGoalEnabled && msg.data.goalEnabled !== undefined) checkGoalEnabled.checked = msg.data.goalEnabled !== false;
-            const newTheme = msg.data.goalTheme || msg.data.theme;
-            if (selectGoalTheme && newTheme !== undefined) {
-              selectGoalTheme.value = newTheme;
-              updateOverlayUrls(streamId);
-            }
-            if (msg.data.goalCustomColors || msg.data.customColors) {
-              applyCustomColorsToInputs(msg.data.goalCustomColors || msg.data.customColors);
-            }
-            updateGoalCustomVisibility();
+            applyAllSettingsToInputs(msg.data, true);
           }
         } else if (msg.type === 'SUBSCRIPTION_UPDATED') {
           renderSubscription(msg.data);

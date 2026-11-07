@@ -1,0 +1,65 @@
+{
+  "settings": {
+    "voiceSpeed": 1.0,
+    "voiceEnabled": true,
+    "voiceLanguage": "en-IN",
+    "voicePersona": "standard",
+    "voicePitch": 1,
+    "ownVoiceUrl": null,
+    "ownVoiceMode": "intro",
+    "ownVoiceOriginalName": null,
+    "customAlertSoundUrl": "/sounds/cash.wav",
+    "customAlertSoundName": "Cash Register",
+    "customMediaUrl": "/presets/party_parrot.gif",
+    "customMediaType": "gif",
+    "customMediaName": "Party Parrot",
+    "soundVolume": 0.9,
+    "minAlertAmount": 1,
+    "minTtsAmount": 20,
+    "censorProfanity": true,
+    "discordWebhookUrl": "",
+    "discordWebhookEnabled": false,
+    "goalTitle": "GPU UPGRADE",
+    "goalTarget": 30000,
+    "goalCurrent": 150,
+    "goalTheme": "gold",
+    "goalCustomColors": {
+      "barStart": "#00f0ff",
+      "barEnd": "#ec4899",
+      "glow": "#00f0ff",
+      "text": "#00f0ff"
+    },
+    "goalEnabled": true
+  },
+  "subscription": {
+    "plan": "pro",
+    "status": "active",
+    "tierName": "Creator Pro (Paid)",
+    "startedAt": 1792086743220,
+    "expiresAt": 1823622743220,
+    "features": {
+      "watermark": false,
+      "customAudio": true,
+      "aiVoiceTts": true,
+      "discordWebhook": true,
+      "goalBars": true,
+      "zeroCommission": true
+    },
+    "updatedAt": 1792086743220
+  },
+  "pairingCode": "129093",
+  "accountName": "SRB STUDIOS",
+  "history": [
+    {
+      "id": "test_1794074270750",
+      "streamId": "srbstudios_1",
+      "appName": "PhonePe",
+      "amount": 150,
+      "senderName": "Stream Fan",
+      "note": "Test Goal Progress",
+      "timestamp": 1794074270750,
+      "isTest": true,
+      "shouldSpeak": true
+    }
+  ]
+}

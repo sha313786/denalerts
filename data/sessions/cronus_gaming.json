@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "voiceSpeed": 1.0,
+    "voiceEnabled": true,
+    "voiceLanguage": "en-IN",
+    "voicePersona": "standard",
+    "voicePitch": 1,
+    "ownVoiceUrl": null,
+    "ownVoiceMode": "intro",
+    "ownVoiceOriginalName": null,
+    "customAlertSoundUrl": null,
+    "customAlertSoundName": "Default Chime",
+    "customMediaUrl": "/presets/cat_jam.gif",
+    "customMediaType": "gif",
+    "customMediaName": "Cat Jam Vibe",
+    "soundVolume": 0.9,
+    "minAlertAmount": 1,
+    "minTtsAmount": 1,
+    "censorProfanity": true,
+    "discordWebhookUrl": "",
+    "discordWebhookEnabled": false,
+    "goalTitle": "Live Stream Goal",
+    "goalTarget": 1000,
+    "goalCurrent": 350,
+    "goalEnabled": true
+  },
+  "subscription": {
+    "plan": "pro_trial",
+    "status": "active",
+    "tierName": "Creator Pro (Trial)",
+    "startedAt": 1792093130226,
+    "expiresAt": 1793302730226,
+    "features": {
+      "watermark": true,
+      "customAudio": true,
+      "aiVoiceTts": true,
+      "discordWebhook": true,
+      "goalBars": true,
+      "zeroCommission": true
+    }
+  },
+  "pairingCode": "477889",
+  "accountName": "CRONUS_GAMING",
+  "history": []
+}

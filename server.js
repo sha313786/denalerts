@@ -1006,8 +1006,13 @@ app.post('/api/settings', requireStreamerAuth, (req, res) => {
   if (req.body.goalTarget !== undefined && req.body.goalTarget !== null && !isNaN(parseFloat(req.body.goalTarget))) {
     session.settings.goalTarget = Math.max(1, parseFloat(req.body.goalTarget));
   }
-  if (req.body.goalCurrent !== undefined && req.body.goalCurrent !== null && !isNaN(parseFloat(req.body.goalCurrent))) {
+  if (req.body.goalCurrentManuallySet === true && req.body.goalCurrent !== undefined && !isNaN(parseFloat(req.body.goalCurrent))) {
     session.settings.goalCurrent = Math.max(0, parseFloat(req.body.goalCurrent));
+  } else if (req.body.goalCurrent !== undefined && req.body.goalCurrent !== null && !isNaN(parseFloat(req.body.goalCurrent))) {
+    const candidateCurrent = Math.max(0, parseFloat(req.body.goalCurrent));
+    if (candidateCurrent > (parseFloat(session.settings.goalCurrent) || 0)) {
+      session.settings.goalCurrent = candidateCurrent;
+    }
   }
   if (req.body.goalTheme !== undefined && req.body.goalTheme !== null) session.settings.goalTheme = String(req.body.goalTheme).trim();
   if (req.body.goalCustomColors !== undefined && typeof req.body.goalCustomColors === 'object') {
@@ -1117,14 +1122,19 @@ app.post('/api/goal/bump', requireStreamerAuth, (req, res) => {
 app.post('/api/goal/update', requireStreamerAuth, (req, res) => {
   const streamId = req.streamId || extractStreamId(req);
   const { session } = getSession(streamId);
-  const { title, target, current, enabled, theme, customColors } = req.body;
+  const { title, target, current, enabled, theme, customColors, manuallySetCurrent } = req.body;
 
   if (title !== undefined && title !== null) session.settings.goalTitle = String(title).trim();
   if (target !== undefined && target !== null && !isNaN(parseFloat(target))) {
     session.settings.goalTarget = Math.max(1, parseFloat(target));
   }
-  if (current !== undefined && current !== null && !isNaN(parseFloat(current))) {
+  if (manuallySetCurrent === true && current !== undefined && !isNaN(parseFloat(current))) {
     session.settings.goalCurrent = Math.max(0, parseFloat(current));
+  } else if (current !== undefined && !isNaN(parseFloat(current))) {
+    const candidateCurrent = Math.max(0, parseFloat(current));
+    if (candidateCurrent > (parseFloat(session.settings.goalCurrent) || 0)) {
+      session.settings.goalCurrent = candidateCurrent;
+    }
   }
   if (enabled !== undefined) session.settings.goalEnabled = Boolean(enabled);
   if (theme !== undefined && theme !== null) session.settings.goalTheme = String(theme).trim();

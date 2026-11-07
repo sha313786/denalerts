@@ -176,6 +176,9 @@
     });
   }
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryCode = urlParams.get('code') || urlParams.get('stream') || urlParams.get('id') || urlParams.get('account');
+
   // 1. Session Authentication Check (Strict Security)
   const authToken = localStorage.getItem('denalerts_auth_token');
   if (!authToken) {
@@ -188,8 +191,11 @@
     cachedUser = JSON.parse(localStorage.getItem('denalerts_user'));
   } catch (_) {}
 
-  let streamId = (cachedUser && cachedUser.streamerKey) ? cachedUser.streamerKey : 'default';
+  let streamId = queryCode || (cachedUser && cachedUser.streamerKey) || localStorage.getItem('stream_session_code') || localStorage.getItem('streamer_code') || 'default';
   let pairingCode = (cachedUser && cachedUser.pairingPin) ? cachedUser.pairingPin : '...';
+
+  const LOCAL_SETTINGS_KEY = 'denalerts_creator_settings_' + streamId;
+  let goalCurrentDirty = false;
 
   // Verified User UI Setup
   function updatePairingUI(pin, account) {
@@ -508,7 +514,19 @@
     updateVoiceStudioVisibility();
     renderActiveOwnVoice(currentSettings);
     renderActiveMedia(currentSettings);
+
+    try {
+      localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify(currentSettings));
+    } catch (_) {}
   }
+
+  // Synchronous immediate restore from LocalStorage so UI never flashes/resets to default
+  try {
+    const localCached = JSON.parse(localStorage.getItem(LOCAL_SETTINGS_KEY));
+    if (localCached) {
+      applyAllSettingsToInputs(localCached, false);
+    }
+  } catch (_) {}
 
   // Copy Buttons
   function copyText(val, btn, originalHtml) {
@@ -946,7 +964,7 @@
     const activeModeEl = document.querySelector('input[name="ov-mode"]:checked');
 
     let goalCur = currentSettings.goalCurrent !== undefined ? parseFloat(currentSettings.goalCurrent) : 0;
-    if (inputGoalCurrent && inputGoalCurrent.value !== '' && !isNaN(parseFloat(inputGoalCurrent.value))) {
+    if (goalCurrentDirty && inputGoalCurrent && inputGoalCurrent.value !== '' && !isNaN(parseFloat(inputGoalCurrent.value))) {
       goalCur = parseFloat(inputGoalCurrent.value);
     }
 
@@ -955,6 +973,13 @@
       goalTgt = parseFloat(inputGoalTarget.value);
     } else if (currentSettings.goalTarget !== undefined) {
       goalTgt = parseFloat(currentSettings.goalTarget);
+    }
+
+    let goalTtl = 'Live Stream Goal';
+    if (inputGoalTitle && inputGoalTitle.value.trim() !== '') {
+      goalTtl = inputGoalTitle.value.trim();
+    } else if (currentSettings.goalTitle) {
+      goalTtl = currentSettings.goalTitle;
     }
 
     const payload = {
@@ -973,9 +998,10 @@
       streamElementsEnabled: checkStreamElementsEnabled ? checkStreamElementsEnabled.checked : Boolean(currentSettings.streamElementsEnabled),
       streamElementsChannelId: inputStreamElementsChannel ? inputStreamElementsChannel.value.trim() : (currentSettings.streamElementsChannelId || ''),
       streamElementsToken: inputStreamElementsToken ? inputStreamElementsToken.value.trim() : (currentSettings.streamElementsToken || ''),
-      goalTitle: inputGoalTitle && inputGoalTitle.value.trim() !== '' ? inputGoalTitle.value.trim() : (currentSettings.goalTitle || 'Live Stream Goal'),
+      goalTitle: goalTtl,
       goalTarget: goalTgt,
       goalCurrent: goalCur,
+      goalCurrentManuallySet: goalCurrentDirty,
       goalTheme: selectGoalTheme ? selectGoalTheme.value : (currentSettings.goalTheme || 'default'),
       goalCustomColors: {
         barStart: inputGoalBarStart ? inputGoalBarStart.value : (currentSettings.goalCustomColors && currentSettings.goalCustomColors.barStart || '#00f0ff'),
@@ -985,6 +1011,10 @@
       },
       goalEnabled: checkGoalEnabled ? checkGoalEnabled.checked : (currentSettings.goalEnabled !== false)
     };
+
+    try {
+      localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify(payload));
+    } catch (_) {}
 
     if (btnSaveSettings) {
       btnSaveSettings.disabled = true;
@@ -1000,6 +1030,7 @@
       body: JSON.stringify(payload)
     }).then(r => r.json()).then(data => {
       if (data && data.settings) {
+        goalCurrentDirty = false;
         applyAllSettingsToInputs(data.settings, true);
       }
       triggerAutoSaveIndicator('Settings auto-saved to stream! ✓');
@@ -1057,7 +1088,41 @@
     });
   }
 
-  // Auto-save Goal Settings on edit
+  // Auto-save Goal Settings on edit & input
+  if (inputGoalCurrent) {
+    inputGoalCurrent.addEventListener('input', () => {
+      goalCurrentDirty = true;
+    });
+  }
+
+  let goalInputDebounce = null;
+  [inputGoalTitle, inputGoalTarget].forEach(el => {
+    if (el) {
+      el.addEventListener('input', () => {
+        try {
+          const local = JSON.parse(localStorage.getItem(LOCAL_SETTINGS_KEY) || '{}');
+          if (inputGoalTitle && inputGoalTitle.value.trim()) local.goalTitle = inputGoalTitle.value.trim();
+          if (inputGoalTarget && !isNaN(parseFloat(inputGoalTarget.value))) local.goalTarget = parseFloat(inputGoalTarget.value);
+          localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify({ ...currentSettings, ...local }));
+        } catch (_) {}
+
+        clearTimeout(goalInputDebounce);
+        goalInputDebounce = setTimeout(() => {
+          saveSettings();
+        }, 500);
+      });
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    try {
+      const local = JSON.parse(localStorage.getItem(LOCAL_SETTINGS_KEY) || '{}');
+      if (inputGoalTitle && inputGoalTitle.value.trim()) local.goalTitle = inputGoalTitle.value.trim();
+      if (inputGoalTarget && !isNaN(parseFloat(inputGoalTarget.value))) local.goalTarget = parseFloat(inputGoalTarget.value);
+      localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify({ ...currentSettings, ...local }));
+    } catch (_) {}
+  });
+
   [inputGoalTitle, inputGoalTarget, inputGoalCurrent].forEach(el => {
     if (el) {
       el.addEventListener('change', () => {
@@ -1892,7 +1957,25 @@
           renderHistory(historyData);
         }
         if (data.settings) {
-          applyAllSettingsToInputs(data.settings, false);
+          let serverSettings = { ...data.settings };
+          try {
+            const cachedSettings = JSON.parse(localStorage.getItem(LOCAL_SETTINGS_KEY));
+            if (cachedSettings) {
+              // If server returns cold-start default "Live Stream Goal", but user has saved a customized goal:
+              if (serverSettings.goalTitle === 'Live Stream Goal' && cachedSettings.goalTitle && cachedSettings.goalTitle !== 'Live Stream Goal') {
+                serverSettings.goalTitle = cachedSettings.goalTitle;
+                serverSettings.goalTarget = cachedSettings.goalTarget || serverSettings.goalTarget;
+                serverSettings.goalTheme = cachedSettings.goalTheme || serverSettings.goalTheme;
+                serverSettings.goalCustomColors = cachedSettings.goalCustomColors || serverSettings.goalCustomColors;
+                // Auto-sync custom settings back to server
+                setTimeout(saveSettings, 150);
+              } else if (cachedSettings.goalTitle && cachedSettings.goalTitle !== 'Live Stream Goal') {
+                serverSettings.goalTitle = cachedSettings.goalTitle;
+                serverSettings.goalTarget = cachedSettings.goalTarget || serverSettings.goalTarget;
+              }
+            }
+          } catch (_) {}
+          applyAllSettingsToInputs(serverSettings, false);
         }
         lastDashboardPolledTime = data.serverTime || Date.now();
       }

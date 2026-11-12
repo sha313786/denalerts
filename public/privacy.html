@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - DenAlerts</title>
+  <meta name="description" content="Official Privacy Policy for DenAlerts by SRB STUDIOS. Details on Android companion app notification listener, data security, and streamer privacy.">
+  <link rel="icon" type="image/svg+xml" href="/denalerts-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/landing.css?v=38">
+  <style>
+    .policy-page-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #030712;
+      color: #e2e8f0;
+    }
+    .policy-container {
+      max-width: 820px;
+      margin: 120px auto 60px;
+      padding: 0 24px;
+      flex: 1;
+    }
+    .policy-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+    .policy-card h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .policy-meta {
+      font-size: 13.5px;
+      color: var(--text-tertiary);
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .policy-section {
+      margin-bottom: 28px;
+    }
+    .policy-section h2 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+    }
+    .policy-section p {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .policy-section ul {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      transition: gap 0.2s;
+    }
+    .back-btn:hover {
+      gap: 12px;
+    }
+  </style>
+</head>
+<body class="policy-page-wrap">
+
+  <div class="policy-container">
+    <a href="/" class="back-btn">&larr; Back to DenAlerts Home</a>
+
+    <div class="policy-card">
+      <h1>Privacy &amp; Data Security Policy</h1>
+      <div class="policy-meta">Last Updated: November 2026 • Published by SRB STUDIOS (alerts.denbooks.in)</div>
+
+      <div class="policy-section">
+        <h2>1. Zero Banking Credential Philosophy</h2>
+        <p>DenAlerts is engineered with strict financial privacy in mind. We NEVER ask for, record, process, or store:</p>
+        <ul>
+          <li>Bank account passwords or net banking logins.</li>
+          <li>Debit or credit card numbers, CVVs, or expiration dates.</li>
+          <li>One-Time Passwords (OTPs) or UPI PINs.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2>2. Android Companion App Notification Listener</h2>
+        <p>The DenAlerts Android application uses the standard Android <code>NotificationListenerService</code> API strictly to detect incoming UPI payment credit notifications.</p>
+        <ul>
+          <li><strong>Credit-Only Parsing:</strong> The application only parses notifications from verified UPI payment apps (PhonePe, Google Pay, Paytm, BHIM, Cred) containing positive credit terms (e.g., "received", "credited").</li>
+          <li><strong>Personal Privacy:</strong> Private chat apps (WhatsApp, Telegram, SMS messages, personal emails), debit transactions, account balances, and unrelated notifications are strictly ignored and never transmitted.</li>
+          <li><strong>Off-Stream Switch:</strong> When you turn off "Live Stream Mode" in the app, the notification listener is paused immediately.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2>3. Data Transmission &amp; Encryption</h2>
+        <p>All communication between your Android device, the Cockpit Dashboard, and OBS overlay widgets is secured over modern TLS/HTTPS encryption. Data is tagged strictly with your unique 6-digit Pairing PIN and Streamer Key.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2>4. Data Retention</h2>
+        <p>Recent donation records displayed in the Cockpit are retained temporarily in volatile session storage for your active broadcast summary. Broadcasters can clear history at any time using the "Clear Feed" button in the Dashboard.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2>5. Inquiries &amp; Privacy Contact</h2>
+        <p>If you have any questions or data concerns, contact our privacy officer directly at <a href="mailto:support@denbooks.in" style="color:var(--accent-cyan);">support@denbooks.in</a>.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

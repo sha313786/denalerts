@@ -2025,10 +2025,24 @@ app.get('/sitemap.xml', (req, res) => {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/sign-in', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
-app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get([
+  '/dashboard',
+  '/dashboard/:section',
+  '/dashboard/*',
+  '/simulator',
+  '/voice',
+  '/media',
+  '/goal-settings',
+  '/integrations',
+  '/guide'
+], (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 app.get('/overlay', (req, res) => res.sendFile(path.join(__dirname, 'public', 'overlay.html')));
 app.get('/goal', (req, res) => res.sendFile(path.join(__dirname, 'public', 'goal.html')));
 app.get('/tutorial', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tutorial.html')));
+app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));
+app.get('/terms-of-service', (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));
+app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
+app.get('/privacy-policy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 app.get('/refund-and-cancellation', (req, res) => res.sendFile(path.join(__dirname, 'public', 'refund-and-cancellation.html')));
 app.get('/refund', (req, res) => res.sendFile(path.join(__dirname, 'public', 'refund-and-cancellation.html')));
 

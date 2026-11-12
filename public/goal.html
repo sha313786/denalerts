@@ -356,6 +356,60 @@
       box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
     }
 
+    /* Theme: Emerald Matrix */
+    body.theme-emerald .widget-container {
+      border-color: rgba(16, 185, 129, 0.65);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(16, 185, 129, 0.35);
+    }
+    body.theme-emerald .progress-fill {
+      background: linear-gradient(90deg, #10b981 0%, #34d399 60%, #fbbf24 100%);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.65);
+    }
+    body.theme-emerald .progress-fill::before {
+      box-shadow: 0 0 12px 3px #34d399, 0 0 6px #ffffff;
+    }
+    body.theme-emerald .percentage-badge {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border-color: #34d399;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.45);
+    }
+    body.theme-emerald .goal-amount-raised {
+      color: #34d399;
+      text-shadow: 0 2px 4px #000000, 0 0 14px rgba(16, 185, 129, 0.7);
+    }
+    body.theme-emerald .goal-icon {
+      border-color: rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Theme: Crimson Fury */
+    body.theme-crimson .widget-container {
+      border-color: rgba(239, 68, 68, 0.65);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(239, 68, 68, 0.35);
+    }
+    body.theme-crimson .progress-fill {
+      background: linear-gradient(90deg, #ef4444 0%, #f97316 60%, #fbbf24 100%);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.65);
+    }
+    body.theme-crimson .progress-fill::before {
+      box-shadow: 0 0 12px 3px #f97316, 0 0 6px #ffffff;
+    }
+    body.theme-crimson .percentage-badge {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border-color: #f87171;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+    }
+    body.theme-crimson .goal-amount-raised {
+      color: #f87171;
+      text-shadow: 0 2px 4px #000000, 0 0 14px rgba(239, 68, 68, 0.7);
+    }
+    body.theme-crimson .goal-icon {
+      border-color: rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+
     /* Theme: Simple Minimalist Streamer */
     body.theme-simple .widget-container {
       background: rgba(6, 9, 18, 0.96) !important;
@@ -530,7 +584,7 @@
       function applyGoalTheme(themeName, customColors) {
         if (!themeName) return;
         const theme = String(themeName).toLowerCase().trim();
-        const themes = ['theme-default', 'theme-simple', 'theme-capsule', 'theme-gold', 'theme-purple', 'theme-custom'];
+        const themes = ['theme-default', 'theme-simple', 'theme-capsule', 'theme-gold', 'theme-purple', 'theme-emerald', 'theme-crimson', 'theme-custom'];
         themes.forEach(cls => document.body.classList.remove(cls));
         if (theme && theme !== 'default') {
           document.body.classList.add('theme-' + theme);

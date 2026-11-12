@@ -2112,21 +2112,131 @@
   }
 }
 
-  // Studio Tab Switching (De-congested Column Left)
-  const studioTabs = document.querySelectorAll('.studio-tab');
-  const studioPanes = document.querySelectorAll('.studio-pane');
-  if (studioTabs.length > 0) {
-    studioTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const targetId = tab.dataset.pane;
-        studioTabs.forEach(t => t.classList.remove('active'));
-        studioPanes.forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        const targetPane = document.getElementById(targetId);
-        if (targetPane) targetPane.classList.add('active');
-      });
-    });
+  // Dedicated Studio Pages Navigation & URL Routing
+  const studioNavBtns = document.querySelectorAll('.studio-nav-btn');
+  const sectionPages = document.querySelectorAll('.dashboard-section-page');
+
+  function getSectionFromUrl() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes('/goal')) return 'goal';
+    if (path.includes('/voice')) return 'voice';
+    if (path.includes('/media')) return 'media';
+    if (path.includes('/integration')) return 'integrations';
+    if (path.includes('/guide')) return 'guide';
+    if (path.includes('/sim')) return 'simulator';
+
+    const p = urlParams.get('page') || urlParams.get('tab') || urlParams.get('section');
+    if (p) {
+      const pl = p.toLowerCase();
+      if (pl.includes('goal')) return 'goal';
+      if (pl.includes('voice')) return 'voice';
+      if (pl.includes('media')) return 'media';
+      if (pl.includes('integration')) return 'integrations';
+      if (pl.includes('guide')) return 'guide';
+    }
+    return 'simulator';
   }
+
+  function updateLiveGoalPreview() {
+    const card = document.getElementById('goal-preview-card');
+    const titleEl = document.getElementById('preview-goal-title');
+    const curEl = document.getElementById('preview-goal-current');
+    const tgtEl = document.getElementById('preview-goal-target');
+    const barEl = document.getElementById('preview-goal-bar');
+    const pctEl = document.getElementById('preview-goal-pct');
+    const themeIndicator = document.getElementById('preview-theme-indicator');
+
+    if (!card || !titleEl) return;
+
+    const title = (inputGoalTitle && inputGoalTitle.value.trim()) || currentSettings.goalTitle || 'Live Stream Goal';
+    const tgt = (inputGoalTarget && parseFloat(inputGoalTarget.value)) || currentSettings.goalTarget || 1000;
+    const cur = currentSettings.goalCurrent !== undefined ? parseFloat(currentSettings.goalCurrent) : 0;
+    const theme = (selectGoalTheme && selectGoalTheme.value) || currentSettings.goalTheme || 'gold';
+
+    titleEl.textContent = title;
+    curEl.textContent = '₹' + cur.toLocaleString('en-IN');
+    tgtEl.textContent = '₹' + tgt.toLocaleString('en-IN');
+
+    const pct = Math.min(100, Math.max(0, (cur / tgt) * 100));
+    if (barEl) barEl.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct.toFixed(1) + '% completed';
+
+    if (themeIndicator) {
+      themeIndicator.textContent = 'Theme: ' + theme.toUpperCase();
+    }
+
+    card.className = 'preview-widget-card theme-' + theme;
+
+    // Apply custom colors if theme is custom
+    if (theme === 'custom' && currentSettings.goalCustomColors) {
+      card.style.borderColor = currentSettings.goalCustomColors.glow || '#00f0ff';
+      if (barEl) {
+        barEl.style.background = `linear-gradient(90deg, ${currentSettings.goalCustomColors.barStart || '#00f0ff'} 0%, ${currentSettings.goalCustomColors.barEnd || '#ec4899'} 100%)`;
+      }
+      if (curEl) {
+        curEl.style.color = currentSettings.goalCustomColors.text || '#00f0ff';
+      }
+    } else {
+      card.style.borderColor = '';
+      if (barEl) barEl.style.background = '';
+      if (curEl) curEl.style.color = '';
+    }
+  }
+
+  function switchDashboardSection(sectionName, pushState = true) {
+    const validSections = ['simulator', 'goal', 'voice', 'media', 'integrations', 'guide'];
+    const activeSec = validSections.includes(sectionName) ? sectionName : 'simulator';
+
+    sectionPages.forEach(sec => sec.classList.remove('active'));
+    studioNavBtns.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.section === activeSec) btn.classList.add('active');
+    });
+
+    const targetSec = document.getElementById('section-' + activeSec);
+    if (targetSec) targetSec.classList.add('active');
+
+    // Also activate legacy panes if present
+    const legacyPaneMap = {
+      simulator: 'pane-sim',
+      goal: 'pane-goal',
+      voice: 'pane-voice',
+      media: 'pane-media',
+      integrations: 'pane-discord',
+      guide: 'pane-guide'
+    };
+    const targetPane = document.getElementById(legacyPaneMap[activeSec]);
+    if (targetPane) targetPane.classList.add('active');
+
+    if (activeSec === 'goal') {
+      updateLiveGoalPreview();
+    }
+
+    if (pushState) {
+      const query = window.location.search;
+      const newPath = '/dashboard/' + activeSec + query;
+      window.history.pushState({ section: activeSec }, '', newPath);
+    }
+  }
+
+  studioNavBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const sec = btn.dataset.section;
+      switchDashboardSection(sec, true);
+    });
+  });
+
+  window.addEventListener('popstate', () => {
+    switchDashboardSection(getSectionFromUrl(), false);
+  });
+
+  if (inputGoalTitle) inputGoalTitle.addEventListener('input', updateLiveGoalPreview);
+  if (inputGoalTarget) inputGoalTarget.addEventListener('input', updateLiveGoalPreview);
+  if (selectGoalTheme) selectGoalTheme.addEventListener('change', updateLiveGoalPreview);
+
+  // Initialize with section from URL
+  switchDashboardSection(getSectionFromUrl(), false);
 
   // 7. Custom Alert Media Studio (Sound, GIF & Video Memes)
   const activeSoundLabel = document.getElementById('active-sound-label');

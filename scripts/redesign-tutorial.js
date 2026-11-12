@@ -1,0 +1,610 @@
+const fs = require('fs');
+const path = require('path');
+
+const filePath = path.join(__dirname, '..', 'public', 'tutorial.html');
+
+const tutorialHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Tutorial &amp; Walkthrough - DenAlerts</title>
+  <meta name="description" content="Step-by-step master video guide to set up DenAlerts zero-commission UPI live stream alerts: register, download companion APK, pair 6-digit PIN, configure OBS overlay, and go live.">
+  <link rel="canonical" href="https://alerts.denbooks.in/tutorial">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://alerts.denbooks.in/tutorial">
+  <meta property="og:site_name" content="SRB STUDIOS">
+  <meta property="og:title" content="Setup Tutorial &amp; Walkthrough - DenAlerts">
+  <meta property="og:description" content="Master video guide and 5-step walkthrough to set up 0% commission UPI stream alerts in OBS Studio in under 3 minutes.">
+  <meta property="og:image" content="https://alerts.denbooks.in/og-banner.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="theme-color" content="#6366f1">
+
+  <link rel="icon" type="image/svg+xml" href="/denalerts-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/landing.css?v=44">
+
+  <style>
+    .tutorial-page-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tutorial-container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 120px 24px 60px;
+      width: 100%;
+    }
+
+    .tutorial-hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .tutorial-hero .section-meta-tag {
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .tutorial-hero h1 {
+      font-size: clamp(32px, 4.5vw, 46px);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+    .tutorial-hero p {
+      font-size: clamp(15px, 1.8vw, 17px);
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Video Player Box */
+    .video-player-card {
+      background: rgba(14, 20, 36, 0.9);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 240, 255, 0.15);
+      margin-bottom: 32px;
+      backdrop-filter: blur(14px);
+    }
+
+    .video-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 22px;
+      background: rgba(6, 9, 17, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .video-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .video-card-title span.pulse-dot {
+      width: 9px;
+      height: 9px;
+      background: #00f0ff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00f0ff;
+      display: inline-block;
+    }
+    .video-quality-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: #00f0ff;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .video-screen-frame {
+      position: relative;
+      width: 100%;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-screen-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      outline: none;
+    }
+
+    /* Video Chapters Bar */
+    .chapters-bar {
+      display: flex;
+      gap: 8px;
+      padding: 14px 20px;
+      background: rgba(6, 9, 17, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .chapter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .chapter-pill:hover {
+      color: #fff;
+      background: rgba(0, 240, 255, 0.1);
+      border-color: rgba(0, 240, 255, 0.35);
+      transform: translateY(-1px);
+    }
+    .chapter-pill.active {
+      color: #030712;
+      background: #00f0ff;
+      border-color: #00f0ff;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+    }
+    .chapter-pill .ch-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    /* 5-Step Workflow Cards */
+    .workflow-header {
+      text-align: center;
+      margin: 50px 0 24px;
+    }
+    .workflow-header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .workflow-header p {
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .step-card {
+      background: rgba(14, 20, 36, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .step-card:hover {
+      border-color: rgba(0, 240, 255, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.1);
+    }
+    .step-number-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(59, 130, 246, 0.2));
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 10px;
+      font-weight: 800;
+      color: #00f0ff;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .step-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .step-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    .step-card ul {
+      padding-left: 18px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .step-action-row {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Support Callout Box */
+    .support-callout {
+      background: radial-gradient(circle at top left, rgba(0, 240, 255, 0.1), rgba(15, 23, 42, 0.8) 70%);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      margin-bottom: 30px;
+    }
+    .support-callout-text h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .support-callout-text p {
+      font-size: 14.5px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .tutorial-container { padding: 100px 16px 40px; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .support-callout { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body class="tutorial-page-wrap">
+
+  <!-- Ambient Glow -->
+  <div class="ambient-glow-sphere sphere-1"></div>
+  <div class="ambient-glow-sphere sphere-2"></div>
+  <div class="ambient-glow-sphere sphere-3"></div>
+
+  <!-- Navigation -->
+  <nav class="navbar scrolled" id="main-nav">
+    <div class="container nav-wrap">
+      <a href="/" class="nav-brand">
+        <div class="brand-icon-box">
+          <img src="/denalerts-logo.svg" alt="DenAlerts Logo" width="24" height="24">
+        </div>
+        <div class="brand-name">Den<span>Alerts</span></div>
+        <span class="brand-version-pill">v2.5</span>
+      </a>
+
+      <ul class="nav-menu">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><a href="/tutorial" class="active">Tutorial</a></li>
+        <li><a href="/faq">FAQ</a></li>
+      </ul>
+
+      <div class="nav-cta-group">
+        <a href="/DenAlerts.apk" download class="btn btn-secondary" title="Download Official Android Companion App">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Get APK</span>
+        </a>
+        <a href="https://discord.gg/XyKNuC4hBd" target="_blank" class="btn btn-secondary" title="Join Discord Community">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#5865F2" style="vertical-align:middle; margin-right:4px;">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+          <span>Discord</span>
+        </a>
+        <a href="/login" class="btn btn-primary">
+          <span>Open Cockpit</span>
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="tutorial-container">
+
+    <!-- Header / Hero -->
+    <header class="tutorial-hero">
+      <span class="section-meta-tag">OFFICIAL BROADCASTER GUIDE</span>
+      <h1>Complete OBS Studio &amp; Companion App Setup</h1>
+      <p>
+        Watch our 1080p walkthrough or follow the 5-step checklist below to start receiving real-time, 0% commission UPI alerts on your broadcast in under 3 minutes.
+      </p>
+    </header>
+
+    <!-- Master Video Player Box -->
+    <div class="video-player-card">
+      <div class="video-card-header">
+        <div class="video-card-title">
+          <span class="pulse-dot"></span>
+          <span>Official Setup Master Video Walkthrough</span>
+        </div>
+        <span class="video-quality-tag">1080P FULL HD</span>
+      </div>
+
+      <div class="video-screen-frame">
+        <video id="master-video" controls playsinline preload="metadata">
+          <source src="/downloads/DenAlerts_Setup_Tutorial.mp4" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
+      </div>
+
+      <!-- Chapter Navigation -->
+      <div class="chapters-bar" id="chapters-bar">
+        <button class="chapter-pill active" data-time="0">
+          <span class="ch-time">00:00</span>
+          <span>1. Introduction &amp; Cockpit</span>
+        </button>
+        <button class="chapter-pill" data-time="18">
+          <span class="ch-time">00:18</span>
+          <span>2. Android APK Installation</span>
+        </button>
+        <button class="chapter-pill" data-time="40">
+          <span class="ch-time">00:40</span>
+          <span>3. 6-Digit PIN Pairing</span>
+        </button>
+        <button class="chapter-pill" data-time="62">
+          <span class="ch-time">01:02</span>
+          <span>4. OBS Browser Source Setup</span>
+        </button>
+        <button class="chapter-pill" data-time="88">
+          <span class="ch-time">01:28</span>
+          <span>5. Voice TTS &amp; Live Test</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5-Step Visual Checklist -->
+    <div class="workflow-header">
+      <h2>Step-by-Step Setup Checklist</h2>
+      <p>Follow these 5 simple steps to get your live UPI alerts up and running</p>
+    </div>
+
+    <div class="steps-grid">
+      <!-- Step 1 -->
+      <div class="step-card">
+        <div>
+          <div class="step-number-badge">01</div>
+          <h3>Create Free Account</h3>
+          <p>Sign in to the DenAlerts Cockpit using your email or Google account to generate your private Stream Token and unique OBS overlay URL.</p>
+          <ul>
+            <li>Instant activation with zero phone number requirement</li>
+            <li>Copy your unique 1080p Browser Source URL</li>
+          </ul>
+        </div>
+        <div class="step-action-row">
+          <a href="/login" class="btn btn-primary" style="width:100%; justify-content:center;">Open Cockpit</a>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-card">
+        <div>
+          <div class="step-number-badge">02</div>
+          <h3>Download Companion APK</h3>
+          <p>Download and install the official DenAlerts Android companion app directly onto the phone where you receive your Google Pay, PhonePe, or Paytm UPI notifications.</p>
+          <ul>
+            <li>Lightweight (~6 MB), zero battery drain</li>
+            <li>No root access or banking passwords required</li>
+          </ul>
+        </div>
+        <div class="step-action-row">
+          <a href="/DenAlerts.apk" download class="btn btn-secondary" style="width:100%; justify-content:center;">Download APK</a>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-card">
+        <div>
+          <div class="step-number-badge">03</div>
+          <h3>Grant Permissions &amp; Pair PIN</h3>
+          <p>Open the app, allow <strong>Notification Access</strong> so it can detect incoming UPI credit alerts, and enter the 6-digit PIN shown on your Cockpit screen.</p>
+          <ul>
+            <li>App displays green "Connected &bull; Cloud Synced" indicator</li>
+            <li>Toggle <strong>Live Stream Mode</strong> ON when broadcasting</li>
+          </ul>
+        </div>
+        <div class="step-action-row">
+          <span style="font-size:12.5px; color:#10b981; font-weight:700;">✓ Sub-second cloud pairing</span>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step-card">
+        <div>
+          <div class="step-number-badge">04</div>
+          <h3>Add Browser Source in OBS</h3>
+          <p>In OBS Studio or Streamlabs, add a new <strong>Browser Source</strong>, paste your overlay URL, set resolution to <strong>1920x1080</strong>, and check "Shutdown source when not visible".</p>
+          <ul>
+            <li>Supports OBS Studio, Streamlabs, Prism Live &amp; vMix</li>
+            <li>Transparent 60 FPS hardware-accelerated canvas</li>
+          </ul>
+        </div>
+        <div class="step-action-row">
+          <span style="font-size:12.5px; color:var(--accent-cyan); font-weight:700;">Resolution: 1920 × 1080</span>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="step-card">
+        <div>
+          <div class="step-number-badge">05</div>
+          <h3>Simulate Test Alert &amp; Go Live!</h3>
+          <p>Head to the <strong>Alert Simulator</strong> in Cockpit and click "Simulate Superchat". You will hear the sound chime and Indian voice TTS announce the donor name live on stream!</p>
+          <ul>
+            <li>Customizable voice models and sound chimes</li>
+            <li>100% peer-to-peer donation settlement direct to bank</li>
+          </ul>
+        </div>
+        <div class="step-action-row">
+          <a href="/dashboard" class="btn btn-secondary" style="width:100%; justify-content:center;">Launch Alert Simulator</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Direct Support Callout -->
+    <div class="support-callout">
+      <div class="support-callout-text">
+        <h3>Need Help With Setup?</h3>
+        <p>Our developer team and Indian streamer community are active 24/7 on Discord to help you configure OBS or troubleshoot phone settings.</p>
+      </div>
+      <a href="https://discord.gg/XyKNuC4hBd" target="_blank" class="btn btn-primary" style="padding:12px 24px; font-size:14px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#000" style="vertical-align:middle; margin-right:4px;">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+        <span>Join Discord Community</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Reference-Matched Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-ref-grid">
+        <div>
+          <div class="footer-brand-title">DenAlerts</div>
+          <p class="footer-brand-text">
+            DenAlerts is Platform as service which monitor notification on your mobile app and email/webhook monitoring to send alert to your Streamlab, Streamelements, and OBS Studio setups. A MUST have application for every streamer. Simple to use and Easy to setup. Google Pay, Paytm, Phonepe, BHIM UPI, Paytm Business, Fampay, BharatPe, Gpay Business, PhonePe Business, and bank SMS direct to your live stream.
+          </p>
+        </div>
+
+        <div>
+          <div class="footer-col-header">USEFUL LINKS</div>
+          <ul class="footer-ref-links">
+            <li><a href="/"><span class="footer-ref-arrow">&rsaquo;</span> Home</a></li>
+            <li><a href="/about"><span class="footer-ref-arrow">&rsaquo;</span> About Us</a></li>
+            <li><a href="/features"><span class="footer-ref-arrow">&rsaquo;</span> Features</a></li>
+            <li><a href="/pricing"><span class="footer-ref-arrow">&rsaquo;</span> Pricing</a></li>
+            <li><a href="/tutorial"><span class="footer-ref-arrow">&rsaquo;</span> Setup Guide &amp; Tutorial</a></li>
+            <li><a href="/faq"><span class="footer-ref-arrow">&rsaquo;</span> FAQ</a></li>
+            <li><a href="/terms"><span class="footer-ref-arrow">&rsaquo;</span> Terms of Service</a></li>
+            <li><a href="/privacy"><span class="footer-ref-arrow">&rsaquo;</span> Privacy Policy</a></li>
+            <li><a href="/refund-and-cancellation"><span class="footer-ref-arrow">&rsaquo;</span> Cancellation &amp; Refund</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-col-header">CONTACT US</div>
+          <div class="footer-ref-contact">
+            <div class="footer-email-reveal-wrap">
+              For Email : <a href="mailto:support@denbooks.in" class="footer-email-link" title="Click to email support">support@denbooks.in</a>
+            </div>
+            <div class="footer-dev-address">
+              <strong>SRB STUDIOS</strong><br>
+              Developer of DenAlerts &bull; denbooks.in<br>
+              You can contact us on Discord as well.
+            </div>
+            <div class="footer-social-row">
+              <a href="https://discord.gg/XyKNuC4hBd" target="_blank" class="footer-social-btn" title="Join Discord">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+              </a>
+              <a href="mailto:support@denbooks.in" class="footer-social-btn" title="Send Email">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <div>
+          &copy; 2026 DenAlerts &bull; Operated by <strong>SRB STUDIOS</strong> (<a href="https://denbooks.in" target="_blank" style="color:#818cf8; text-decoration:none;">denbooks.in</a>). All rights reserved.
+        </div>
+        <div>
+          Universal 0% Platform Commission UPI Alert System for Indian Broadcasters.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Chapter click handler to jump video time
+    const video = document.getElementById('master-video');
+    const pills = document.querySelectorAll('.chapter-pill');
+
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        const time = parseFloat(pill.getAttribute('data-time') || '0');
+        if (video) {
+          video.currentTime = time;
+          video.play().catch(() => {});
+        }
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+      });
+    });
+
+    if (video) {
+      video.addEventListener('timeupdate', () => {
+        const ct = video.currentTime;
+        let activePill = pills[0];
+        pills.forEach(p => {
+          if (ct >= parseFloat(p.getAttribute('data-time') || '0')) {
+            activePill = p;
+          }
+        });
+        pills.forEach(p => p.classList.remove('active'));
+        if (activePill) activePill.classList.add('active');
+      });
+    }
+
+    // Glass scroll effect for navbar
+    const navbar = document.getElementById('main-nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+  </script>
+</body>
+</html>
+`;
+
+fs.writeFileSync(filePath, tutorialHtml, 'utf8');
+console.log('Successfully redesigned public/tutorial.html!');

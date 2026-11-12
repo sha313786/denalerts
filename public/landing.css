@@ -291,6 +291,11 @@ p {
   color: #ffffff;
 }
 
+.nav-menu a.active {
+  color: #00f0ff !important;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+}
+
 .nav-cta-group {
   display: flex;
   align-items: center;

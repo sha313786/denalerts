@@ -1665,3 +1665,147 @@ input:focus, select:focus {
 
 
 
+
+
+/* ==========================================================================
+   DenAlerts Dedicated Studio Pages & Real-time Live Goal Preview
+   ========================================================================== */
+
+.studio-nav-bar {
+  display: flex;
+  gap: 8px;
+  background: rgba(11, 16, 27, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 14px;
+  padding: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.studio-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-decoration: none;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.studio-nav-btn:hover {
+  color: #fff;
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.studio-nav-btn.active {
+  color: #030712 !important;
+  background: linear-gradient(135deg, #00f0ff 0%, #38bdf8 100%) !important;
+  border-color: rgba(0, 240, 255, 0.8) !important;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.45);
+}
+
+.studio-nav-btn.active svg {
+  stroke: #030712 !important;
+}
+
+.dashboard-section-page {
+  display: none;
+  width: 100%;
+}
+
+.dashboard-section-page.active {
+  display: block;
+  animation: pageFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.studio-single-card {
+  max-width: 940px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Live Goal Bar Preview Widget Box */
+.goal-live-preview-box {
+  background: radial-gradient(circle at top, rgba(0, 240, 255, 0.08), rgba(6, 9, 18, 0.85) 70%);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+}
+
+.preview-widget-card {
+  background: rgba(6, 9, 18, 0.95);
+  border: 2px solid rgba(0, 240, 255, 0.5);
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preview-widget-card.theme-gold {
+  border-color: rgba(245, 158, 11, 0.65) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(245, 158, 11, 0.35) !important;
+}
+
+.preview-widget-card.theme-purple {
+  border-color: rgba(168, 85, 247, 0.65) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(168, 85, 247, 0.35) !important;
+}
+
+.preview-widget-card.theme-emerald {
+  border-color: rgba(16, 185, 129, 0.65) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(16, 185, 129, 0.35) !important;
+}
+
+.preview-widget-card.theme-crimson {
+  border-color: rgba(239, 68, 68, 0.65) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95), 0 0 25px rgba(239, 68, 68, 0.35) !important;
+}
+
+.preview-widget-card.theme-capsule {
+  border-radius: 30px !important;
+}
+
+.preview-widget-card.theme-simple {
+  border-width: 1px !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8) !important;
+}
+
+@media (max-width: 768px) {
+  .studio-nav-bar {
+    padding: 6px;
+    gap: 6px;
+  }
+  .studio-nav-btn {
+    padding: 8px 12px;
+    font-size: 11.5px;
+  }
+}
+

@@ -59,6 +59,10 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+section[id] {
+  scroll-margin-top: 72px;
+}
+
 body {
   min-height: 100vh;
   overflow-x: hidden;
